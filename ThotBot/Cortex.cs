@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using ThotBot.Intent;
+using ThotBot.Learning;
 using ThotBot.Services;
 using ThotBot.Skill;
 
@@ -17,14 +18,16 @@ namespace ThotBot
 {
     public class Cortex
     {
-        private bool _sleeping;
-        private bool _quiet;
+        private bool _sleeping = true;
+        private bool _quiet = true;
         private List<Intention> _intentions;
         private ShortTermMemory<string> _memory = new ShortTermMemory<string>();
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private ServiceProvider _provider;
-        private string AllowedChannel = "general";
+        private string AllowedChannel = "coding-voice-text";
+
+        private SocketUser _remember = null;
 
         public Cortex(DiscordSocketClient client, CommandService commands)
         {
@@ -54,8 +57,24 @@ namespace ThotBot
             var message = messageParam as SocketUserMessage;
             if (message == null) return;
 
+            if(_remember != null && _remember == message.Author)
+            {
+                var lastMemory = _memory.LastMemoryObject(message.Author);
+                if (lastMemory.Context.Intention.Name == "Teach")
+                {
+                    _memory.SaveFocusedMemory(message.Author, message.Content);
+                    _remember = null;
+                    await message.Channel.SendMessageAsync($"You want me to learn {message.Content}?");
+                    return;
+                }
+            }
+
             // Dictate where the bot is allowed to operate.
-            if (message.Content.Contains("move Thot here")) AllowedChannel = message.Channel.Name;
+            if (message.Content.Contains("move Thot here"))
+            {
+                AllowedChannel = message.Channel.Name;
+                return;
+            }
 
             // Restrict message handling to one channel.
             if (message.Channel.Name != AllowedChannel) return;
@@ -65,8 +84,9 @@ namespace ThotBot
             {
                 if (_sleeping)
                 {
-                    message.Channel.SendMessageAsync("Waking up...");
+                    await message.Channel.SendMessageAsync("Waking up...");
                     _sleeping = false;
+                    return;
                 }
             }
             if (_sleeping) return;
@@ -74,31 +94,51 @@ namespace ThotBot
             {
                 if (!_sleeping)
                 {
-                    message.Channel.SendMessageAsync("Going into low power mode...");
+                    await message.Channel.SendMessageAsync("Going into low power mode...");
                     _sleeping = true;
+                    return;
                 }
             }
 
             if (message.Content.Contains("quiet mode"))
             {
                 _quiet = true;
+                return;
             }
             if (message.Content.Contains("verbose mode"))
             {
                 _quiet = false;
+                return;
             }
 
             // Pass the message to the conversation handler for the first pass of hard-coded responses.
             int argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
             {
-                HandleConversation(messageParam);
+                await HandleConversation(messageParam);
             }
 
             // Predict the user's intention and then send it to short term memory.
             if (!_quiet)
             {
                 var intention = await PredictIntention(messageParam);
+                if (intention.Name == "Teach")
+                {
+                    _remember = message.Author;
+                    await message.Channel.SendMessageAsync("Tell me the name of this new command.");
+                }
+                if (intention.Name == "Confirm")
+                {
+                    var focusedMemory = _memory.GetFocusedMemory(message.Author);
+                    var lastMemory = _memory.MemoryBeforeLast(message.Author);
+                    if (lastMemory.Context.Intention.Name == "Teach")
+                    {
+                        var rnd = new Random();
+                        string[] acknowledge = new[] { "Understood!", "Okay,", "Cool~", "Got it," };
+                        var acknowledgement = acknowledge[rnd.Next(0, 4)];
+                        await message.Channel.SendMessageAsync($"{acknowledgement} I will remember {focusedMemory}.");
+                    }
+                }
                 _memory.Remember(message.Content, message.Author, MemoryType.Command, message.Channel.Id, intention);
             }
         }
@@ -112,6 +152,8 @@ namespace ThotBot
                 return intent.Predicted;
             }
             var entities = JsonConvert.SerializeObject(intent.Entities);
+            var formulatedJson = JsonConvert.SerializeObject(intent);
+            _memory.Remember(formulatedJson, message.Author, MemoryType.FormulatedIntent, message.Channel.Id, intent.Predicted);
             await message.Channel.SendMessageAsync(string.Format("I predict your intention is to {0} an entity list {1}.", intent.Predicted.Name, entities));
             return intent.Predicted;
         }
@@ -146,7 +188,7 @@ namespace ThotBot
             }
             if (message.Contains("sleep"))
             {
-                await messageParam.Channel.SendMessageAsync(":sleepingcat:");
+                await messageParam.Channel.SendMessageAsync("<:sleepingcat:710491923512819783>");
                 return;
             }
             if (message.Contains("good bot"))

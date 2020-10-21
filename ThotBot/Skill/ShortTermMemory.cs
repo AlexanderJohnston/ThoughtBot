@@ -10,7 +10,8 @@ namespace ThotBot.Skill
     public enum MemoryType 
     {
         Command,
-        Question
+        Question,
+        FormulatedIntent
     }
     public class MemoryContext
     {
@@ -38,10 +39,12 @@ namespace ThotBot.Skill
     }
     public class ShortTermMemory<T>
     {
+        private Dictionary<ushort, string> FocusedMemory;
         private Dictionary<ushort, List<Memory<T>>> Users;
 
         public ShortTermMemory()
         {
+            FocusedMemory = new Dictionary<ushort, string>();
             Users = new Dictionary<ushort, List<Memory<T>>>();
         }
 
@@ -60,6 +63,18 @@ namespace ThotBot.Skill
             memory.Context = new MemoryContext(user.Username, type, channel, intention, relatedContext);
             memories.Add(memory);
         }
+
+        public string GetFocusedMemory(SocketUser user) => FocusedMemory.First(memory => memory.Key == user.DiscriminatorValue).Value;
+
+        public void SaveFocusedMemory(SocketUser user, string memory) => FocusedMemory[user.DiscriminatorValue] = memory;
+
+        public Memory<T> MemoryBeforeLast(SocketUser user)
+        {
+            var memory = Recall(user.DiscriminatorValue);
+            return memory[memory.Count - 2];
+        }
+
+        public Memory<T> LastMemoryObject(SocketUser user) => Recall(user.DiscriminatorValue).Last();
 
         public string LastMemory(SocketUser user)
         {

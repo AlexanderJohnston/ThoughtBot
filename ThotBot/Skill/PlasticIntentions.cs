@@ -32,15 +32,18 @@ namespace ThotBot.Skill
             var intentionJson = await _client.GetStringAsync(uriBuilder.Uri);
             var response = JsonConvert.DeserializeObject<TrainedIntentions[]>(intentionJson);
 
-            var createdIntentions = new List<Intention>();
+            var createdIntentions = new Dictionary<string, Intention>();
             foreach (var intent in response.Select(x => x).ToList())
             {
-                var newIntent = CreateIntention(intent.IntentLabel);
-                newIntent.Name = intent.IntentLabel;
+                var name = intent.IntentLabel;
+                if (createdIntentions.ContainsKey(name))
+                    continue;
+                var newIntent = CreateIntention(name);
+                newIntent.Name = name;
                 newIntent.Threshold = 0.8f;
-                createdIntentions.Add(newIntent);
+                createdIntentions.Add(name, newIntent);
             }
-            return createdIntentions;
+            return createdIntentions.Values.ToList();
         }
 
         private void SetClientHeaders()

@@ -67,7 +67,7 @@ namespace ThotBot.Skill
             query["subscription-key"] = "fee758b0a7fe4eb9b7ca9adca180f4ae";
             query["verbose"] = "false";
             query["log"] = "false";
-            query["show-all-intents"] = "false";
+            query["show-all-intents"] = "true";
             query["query"] = message;
 
             builder.Query = query.ToString();
