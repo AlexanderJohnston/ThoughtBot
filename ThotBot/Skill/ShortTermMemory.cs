@@ -100,14 +100,5 @@ namespace ThotBot.Skill
         private List<Memory<T>> Recall(ushort userId) => Users.First(user => user.Key == userId).Value;
         private Memory<T> Specific(string context, ushort userId) => 
             Recall(userId).First(memory => Matches(memory, context));
-
-        private void RelatedTest()
-        {
-            //Memory<T> relatedMemory;
-            //if (relatedContext != string.Empty && memories.Any(memory => Matches(memory, relatedContext)))
-            //{
-            //    relatedMemory = Specific(relatedContext, userId);
-            //}
-        }
     }
 }

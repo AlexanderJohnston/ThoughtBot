@@ -28,7 +28,7 @@ namespace ThotBot.Skill
             Intentions = intentions;
         }
 
-        public async Task<Intention> PredictAsync(string message)
+        public async Task<FormulatedIntent> PredictAsync(string message)
         {
             var uriBuilder = CognitiveServicesUri(message);
             SetClientHeaders();
@@ -41,13 +41,14 @@ namespace ThotBot.Skill
             string intention = response.Prediction.TopIntent;
             var topPrediction = response.Prediction.Intents[intention];
             float score = topPrediction.Score;
-            Log.Verbose(string.Format("Predicted Intent: [ {0} ] Score: [ {1} ]", intention, score));
+            var entities = response.Prediction.Entities.ToList();
+            Log.Verbose(string.Format("Predicted Intent: [ {0} ] Score: [ {1} ] Entities: [ {2} ]", intention, score, ""));
 
             // Return the intent if it was above the 65% confidence threshold.
             if (Intentions.Any(intent => intent.Name == intention) && score > .65F)
-                return Intentions.First(intent => intent.Name == intention);
+                return new FormulatedIntent() { Predicted = Intentions.First(intent => intent.Name == intention), Entities = entities };
             else
-                return new None();
+                return new FormulatedIntent() { Predicted = new None() };
         }
 
         private void SetClientHeaders()
@@ -60,10 +61,10 @@ namespace ThotBot.Skill
 
         private UriBuilder CognitiveServicesUri(string message)
         {
-            var uriTemplate = BuildUriTemplate("f14ae124-3882-496b-bd05-ba01a35a4df5", "staging");
+            var uriTemplate = BuildUriTemplate("ccf14592-8bca-4d36-925b-8152d2aedddc", "staging");
             var builder = new UriBuilder(uriTemplate);
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["subscription-key"] = "19b4bb7d2b5348919647946c54b7ba00";
+            query["subscription-key"] = "fee758b0a7fe4eb9b7ca9adca180f4ae";
             query["verbose"] = "false";
             query["log"] = "false";
             query["show-all-intents"] = "false";
@@ -72,6 +73,12 @@ namespace ThotBot.Skill
             builder.Query = query.ToString();
             return builder;
         }
+    }
+
+    public class FormulatedIntent
+    {
+        public Intention Predicted;
+        public List<KeyValuePair<string, string[]>> Entities;
     }
 
     public class PredictionResponse
@@ -84,6 +91,7 @@ namespace ThotBot.Skill
     {
         public string TopIntent;
         public Dictionary<string, Scores> Intents;
+        public Dictionary<string,string[]> Entities;
     }
 
     public class Scores

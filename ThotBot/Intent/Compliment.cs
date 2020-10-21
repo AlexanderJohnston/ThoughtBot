@@ -4,10 +4,10 @@ using System.Text;
 
 namespace ThotBot.Intent
 {
-    public class Compliment : Intention
+    public class Confirm : Intention
     {
         public float Threshold { get; set; } = 0.80F;
 
-        public string Name { get; set; } = "Compliment";
+        public string Name { get; set; } = "Confirm";
     }
 }

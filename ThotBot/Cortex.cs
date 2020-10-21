@@ -1,6 +1,8 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using PostSharp.Patterns.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Net.Mail;
@@ -16,6 +18,8 @@ namespace ThotBot
     public class Cortex
     {
         private bool _sleeping;
+        private bool _quiet;
+        private List<Intention> _intentions;
         private ShortTermMemory<string> _memory = new ShortTermMemory<string>();
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
@@ -31,6 +35,8 @@ namespace ThotBot
         public async Task ConfigureBotServices()
         {
             _client.MessageReceived += HandleMessageAsync;
+            var plasticIntent = new PlasticIntentions();
+            _intentions = await plasticIntent.DownloadIntentions();
 
             var provider = new ServiceCollection();
             provider.AddSingleton<SchedulerService>();
@@ -73,6 +79,15 @@ namespace ThotBot
                 }
             }
 
+            if (message.Content.Contains("quiet mode"))
+            {
+                _quiet = true;
+            }
+            if (message.Content.Contains("verbose mode"))
+            {
+                _quiet = false;
+            }
+
             // Pass the message to the conversation handler for the first pass of hard-coded responses.
             int argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
@@ -81,27 +96,29 @@ namespace ThotBot
             }
 
             // Predict the user's intention and then send it to short term memory.
-            var intention = await PredictIntention(messageParam);
-            _memory.Remember(message.Content, message.Author, MemoryType.Command, message.Channel.Id, intention);
+            if (!_quiet)
+            {
+                var intention = await PredictIntention(messageParam);
+                _memory.Remember(message.Content, message.Author, MemoryType.Command, message.Channel.Id, intention);
+            }
         }
 
         private async Task<Intention> PredictIntention(SocketMessage message)
         {
-            var intentions = new List<Intention>() { new Confirm(), new Greeting(), new JoinMeeting(), new JoinStatic(), new LinkResource(), new News(), new None(), new Praise(), new Recall(), new Remember(), new ScheduleEvent(), new Sleep(), new Wake() };
-            var responseEngine = new ResponsePredictionEngine(intentions);
+            var responseEngine = new ResponsePredictionEngine(_intentions);
             var intent = await responseEngine.PredictAsync(message.Content);
-            await message.Channel.SendMessageAsync(string.Format("I predict your intention is: {0}.", intent.Name));
-            return intent;
+            if (intent.Predicted.Name == "None")
+            {
+                return intent.Predicted;
+            }
+            var entities = JsonConvert.SerializeObject(intent.Entities);
+            await message.Channel.SendMessageAsync(string.Format("I predict your intention is to {0} an entity list {1}.", intent.Predicted.Name, entities));
+            return intent.Predicted;
         }
 
         private async Task HandleConversation(SocketMessage messageParam)
         {
             var message = messageParam.Content.ToLower();
-            if (message.Contains("stack overflow"))
-            {
-                await messageParam.Channel.SendMessageAsync(@"https://stackoverflow.com/c/dealeron-dev/");
-                return;
-            }
             if (message.Contains("last memory"))
             {
                 var memory = _memory.LastMemory(messageParam.Author);
@@ -129,7 +146,7 @@ namespace ThotBot
             }
             if (message.Contains("sleep"))
             {
-                await messageParam.Channel.SendMessageAsync("Going to sleep.");
+                await messageParam.Channel.SendMessageAsync(":sleepingcat:");
                 return;
             }
             if (message.Contains("good bot"))
@@ -146,6 +163,10 @@ namespace ThotBot
             {
                 await messageParam.Channel.SendMessageAsync(@"https://dealeron.zoom.us/j/686507944");
                 return;
+            }
+            if (message.Contains("everything you've learned"))
+            {
+                await messageParam.Channel.SendMessageAsync(JsonConvert.SerializeObject(_intentions));
             }
         }
 
