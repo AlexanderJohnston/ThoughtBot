@@ -19,8 +19,11 @@ namespace ThotBot
 		{
 			SetupLogging();
 			SetupConfiguration();
-
-			_client = new DiscordSocketClient();
+			var config = new DiscordSocketConfig()
+			{
+				GatewayIntents = GatewayIntents.All
+			};
+			_client = new DiscordSocketClient(config);
 			LoadCommandsFor(_client);
 			await StartAsync(_client);
 			await LoadCortex(_client, _commandService);

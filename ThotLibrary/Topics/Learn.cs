@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ThotLibrary;
+using Totem.Timeline;
 
-namespace ThotBot.Intent
+namespace ThotLibrary.Topics
 {
-    class Teach
+    public class Learn : Topic
     {
+
     }
 }

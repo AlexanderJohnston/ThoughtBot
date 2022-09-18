@@ -1,9 +1,11 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ThotBot.Intent;
+using ThotLibrary;
 
 namespace ThotBot.Skill
 {
@@ -11,7 +13,8 @@ namespace ThotBot.Skill
     {
         Command,
         Question,
-        FormulatedIntent
+        FormulatedIntent,
+        LearnedSkill
     }
     public class MemoryContext
     {
@@ -48,7 +51,7 @@ namespace ThotBot.Skill
             Users = new Dictionary<ushort, List<Memory<T>>>();
         }
 
-        public void Remember(T value, SocketUser user, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
+        public void Remember(T value, IUser user, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
         {
             var userId = user.DiscriminatorValue;
 
@@ -64,7 +67,7 @@ namespace ThotBot.Skill
             memories.Add(memory);
         }
 
-        public string GetFocusedMemory(SocketUser user) => FocusedMemory.First(memory => memory.Key == user.DiscriminatorValue).Value;
+        public string GetFocusedMemory(SocketUser user) => FocusedMemory.FirstOrDefault(memory => memory.Key == user.DiscriminatorValue).Value;
 
         public void SaveFocusedMemory(SocketUser user, string memory) => FocusedMemory[user.DiscriminatorValue] = memory;
 
@@ -76,7 +79,7 @@ namespace ThotBot.Skill
 
         public Memory<T> LastMemoryObject(SocketUser user) => Recall(user.DiscriminatorValue).Last();
 
-        public string LastMemory(SocketUser user)
+        public string LastMemory(IUser user)
         {
             var userId = user.DiscriminatorValue;
             if (Remembers(userId))
@@ -90,7 +93,7 @@ namespace ThotBot.Skill
             else return string.Format("I don't remember anything yet for {0}", user.Username);
         }
 
-        public List<string> AllMemories(SocketUser user)
+        public List<string> AllMemories(IUser user)
         {
             var explainedMemories = new List<string>();
             var userId = user.DiscriminatorValue;
@@ -111,7 +114,7 @@ namespace ThotBot.Skill
         }
         
         private bool Matches(Memory<T> memory, string context) => memory.Context.ContextId == context;
-        private bool Remembers(ushort userId) => Users.Any(user => user.Key == userId);
+        public bool Remembers(ushort userId) => Users.Any(user => user.Key == userId);
         private List<Memory<T>> Recall(ushort userId) => Users.First(user => user.Key == userId).Value;
         private Memory<T> Specific(string context, ushort userId) => 
             Recall(userId).First(memory => Matches(memory, context));

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using ThotBot.Intent;
+using ThotBot.Libray.Cognitive;
+using ThotLibrary;
 
 namespace ThotBot.Learning
 {

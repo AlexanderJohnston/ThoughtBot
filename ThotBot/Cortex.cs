@@ -1,4 +1,6 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -13,6 +15,7 @@ using ThotBot.Intent;
 using ThotBot.Learning;
 using ThotBot.Services;
 using ThotBot.Skill;
+using ThotLibrary;
 
 namespace ThotBot
 {
@@ -25,7 +28,7 @@ namespace ThotBot
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private ServiceProvider _provider;
-        private string AllowedChannel = "coding-voice-text";
+        private string AllowedChannel = "bottest";
 
         private SocketUser _remember = null;
 
@@ -33,22 +36,21 @@ namespace ThotBot
         {
             _commands = commands;
             _client = client;
+            var plasticIntent = new PlasticIntentions();
+            _intentions = plasticIntent.DownloadIntentions();
         }
 
         public async Task ConfigureBotServices()
         {
             _client.MessageReceived += HandleMessageAsync;
-            var plasticIntent = new PlasticIntentions();
-            _intentions = await plasticIntent.DownloadIntentions();
-
             var provider = new ServiceCollection();
-            provider.AddSingleton<SchedulerService>();
+            //provider.AddSingleton<SchedulerService>();
             _provider = provider.BuildServiceProvider();
             await _commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(),
-                                            services: _provider );
+                                            services: _provider);
         }
 
-        private async Task HandleMessageAsync(SocketMessage messageParam)
+        public async Task HandleMessageAsync(SocketMessage messageParam)
         {
             // Ignore bots.
             if (messageParam.Author.IsBot) return;
@@ -80,7 +82,7 @@ namespace ThotBot
             if (message.Channel.Name != AllowedChannel) return;
 
             // Check for wake and sleep messages
-            if (message.Content.Contains("wake"))
+            if (message.Content.Contains("wake up"))
             {
                 if (_sleeping)
                 {
@@ -90,7 +92,7 @@ namespace ThotBot
                 }
             }
             if (_sleeping) return;
-            if (message.Content.Contains("sleep"))
+            if (message.Content.Contains("go to sleep"))
             {
                 if (!_sleeping)
                 {
@@ -118,9 +120,20 @@ namespace ThotBot
                 await HandleConversation(messageParam);
             }
 
+            await PredictResponse(message);
+
             // Predict the user's intention and then send it to short term memory.
             if (!_quiet)
             {
+                Skill.Memory<string> lastMemory;
+                if (_memory.Remembers(message.Author.DiscriminatorValue))
+                {
+                    lastMemory = _memory.MemoryBeforeLast(message.Author);
+                }
+                else
+                {
+                    lastMemory = new Skill.Memory<string>() { Value = string.Empty, Context = default(MemoryContext) };
+                }
                 var intention = await PredictIntention(messageParam);
                 if (intention.Name == "Teach")
                 {
@@ -130,7 +143,7 @@ namespace ThotBot
                 if (intention.Name == "Confirm")
                 {
                     var focusedMemory = _memory.GetFocusedMemory(message.Author);
-                    var lastMemory = _memory.MemoryBeforeLast(message.Author);
+                    //var lastMemory = _memory.MemoryBeforeLast(message.Author);
                     if (lastMemory.Context.Intention.Name == "Teach")
                     {
                         var rnd = new Random();
@@ -138,12 +151,21 @@ namespace ThotBot
                         var acknowledgement = acknowledge[rnd.Next(0, 4)];
                         await message.Channel.SendMessageAsync($"{acknowledgement} I will remember {focusedMemory}.");
                     }
+
                 }
-                _memory.Remember(message.Content, message.Author, MemoryType.Command, message.Channel.Id, intention);
+                if (intention.Name == "Sing")
+                {
+                    var responseEngine = new ResponsePredictionEngine(_intentions);
+                    var index = message.Content.IndexOf(intention.Name);
+                    var song = message.Content.Substring(index + 5, message.Content.Length - 5);
+                    var emotion = await responseEngine.PredictAsync(song);
+                    await message.Channel.SendMessageAsync(string.Format("Verse: {0}", emotion.Predicted.Name));
+                }
+                _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id, intention);
             }
         }
 
-        private async Task<Intention> PredictIntention(SocketMessage message)
+        private async Task<Intention> PredictIntention(IMessage message)
         {
             var responseEngine = new ResponsePredictionEngine(_intentions);
             var intent = await responseEngine.PredictAsync(message.Content);
@@ -154,11 +176,20 @@ namespace ThotBot
             var entities = JsonConvert.SerializeObject(intent.Entities);
             var formulatedJson = JsonConvert.SerializeObject(intent);
             _memory.Remember(formulatedJson, message.Author, MemoryType.FormulatedIntent, message.Channel.Id, intent.Predicted);
-            await message.Channel.SendMessageAsync(string.Format("I predict your intention is to {0} an entity list {1}.", intent.Predicted.Name, entities));
+            //await message.Channel.SendMessageAsync(string.Format("I predict your intention is to {0} an entity list {1}.", intent.Predicted.Name, entities));
+            await message.Channel.SendMessageAsync(string.Format("I predict your intention is {0}", intent.Predicted.Name));
+            
             return intent.Predicted;
         }
 
-        private async Task HandleConversation(SocketMessage messageParam)
+        private async Task PredictResponse(IMessage message)
+        {
+            var responseEngine = new ResponsePredictionEngine(_intentions);
+            var intent = await responseEngine.PredictResponse(message.Content);
+            await message.Channel.SendMessageAsync(intent);
+        }
+
+        private async Task HandleConversation(IMessage messageParam)
         {
             var message = messageParam.Content.ToLower();
             if (message.Contains("last memory"))
@@ -181,12 +212,12 @@ namespace ThotBot
                 await messageParam.Channel.SendMessageAsync("Good morning!");
                 return;
             }
-            if (message.Contains("wake"))
+            if (message.Contains("now wake up"))
             {
                 await messageParam.Channel.SendMessageAsync("Yes I am listening.");
                 return;
             }
-            if (message.Contains("sleep"))
+            if (message.Contains("go to sleep"))
             {
                 await messageParam.Channel.SendMessageAsync("<:sleepingcat:710491923512819783>");
                 return;

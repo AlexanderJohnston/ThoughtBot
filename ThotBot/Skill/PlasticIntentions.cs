@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using ThotBot.Intent;
+using ThotLibrary;
 
 namespace ThotBot.Skill
 {
@@ -24,12 +25,14 @@ namespace ThotBot.Skill
 
         public string BuildUriTemplate(string appId, string versionId) => string.Format(_uriTemplate, appId, versionId);
 
-        public async Task<List<Intention>> DownloadIntentions()
+        public List<Intention> DownloadIntentions()
         {
             var uriBuilder = CognitiveServicesUri();
             SetClientHeaders();
 
-            var intentionJson = await _client.GetStringAsync(uriBuilder.Uri);
+            var getJson = _client.GetStringAsync(uriBuilder.Uri);
+            string result;
+            var intentionJson = getJson.ContinueWith(t => result = t.Result).Result;
             var response = JsonConvert.DeserializeObject<TrainedIntentions[]>(intentionJson);
 
             var createdIntentions = new Dictionary<string, Intention>();
@@ -51,15 +54,15 @@ namespace ThotBot.Skill
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "19b4bb7d2b5348919647946c54b7ba00");
+            //_client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "19b4bb7d2b5348919647946c54b7ba00");
         }
 
         private UriBuilder CognitiveServicesUri()
         {
-            var uriTemplate = BuildUriTemplate("ccf14592-8bca-4d36-925b-8152d2aedddc", "0.1");
+            var uriTemplate = BuildUriTemplate("bb7e751e-9ab5-49a4-abc5-1dc36709b56f", "0.1");
             var builder = new UriBuilder(uriTemplate);
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["subscription-key"] = "fee758b0a7fe4eb9b7ca9adca180f4ae";
+            query["subscription-key"] = "2503fd19de884b9c8c4d42d49cf17266";
             query["skip"] = "0";
             query["take"] = "100";
 

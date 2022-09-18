@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ThotBot.Intent
+namespace ThotLibrary
 {
     public interface Intention
     {
