@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using ThotBot.Libray.Cognitive;
+using ThotLibrary.Cognitive;
 using ThotLibrary.Conversation;
 using ThotLibrary.Events;
 using Totem.Timeline;

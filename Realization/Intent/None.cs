@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ThotLibrary;
 
-namespace ThotBot.Intent
+namespace Realization.Intent
 {
     public class None : Intention
     {

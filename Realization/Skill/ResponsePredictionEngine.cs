@@ -10,10 +10,10 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using ThotBot.Intent;
+using Realization.Intent;
 using ThotLibrary;
 
-namespace ThotBot.Skill
+namespace Realization.Skill
 {
     public class ResponsePredictionEngine
     {

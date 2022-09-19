@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ThotBot.Libray.Cognitive
+namespace ThotLibrary.Cognitive
 {
     public class LearnedEntity
     {

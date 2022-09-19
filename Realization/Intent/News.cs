@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using ThotLibrary;
 
-namespace ThotBot.Intent
+namespace Realization.Intent
 {
-    public class None : Intention
+    public class News : Intention
     {
         public float Threshold { get; set; } = 0.50F;
 
-        public string Name { get; set; } = "None";
+        public string Name { get; set; } = "News";
     }
 }
