@@ -53,7 +53,11 @@ namespace Realization
         public bool NotInterested(SocketMessage messageParam)
         {
             // Skip  bots
-            if (messageParam.Author.IsBot) return true;
+            if (messageParam.Author.IsBot)
+            {
+                _memory.Remember(messageParam.Content, messageParam.Author, MemoryType.LearnedSkill, messageParam.Channel.Id, new None());
+                return true;
+            }
             // Skip system messages
             var message = messageParam as SocketUserMessage;
             if (message == null) return true;
@@ -91,15 +95,22 @@ namespace Realization
             {
                 lastMemory = _memory.LastMemoryObject(message.Author);
                 if (FamiliarConversation(message))
-                    if (Learning(lastMemory))
-                        await RequestTraining(message);
+                    if (Learning(lastMemory)) { }
+                        //await RequestTraining(message);
             }
 
-            // Determind the bot's mood
+            // Determine what the bot is paying attention to
+              
+              // single vs. multiple conversation partners
+              // parallel conversations
+
+            // Determine the bot's mood
+              
+            //  
 
 
 
-            //.....
+            // .....
 
 
             // Dictate where the bot is allowed to operate.

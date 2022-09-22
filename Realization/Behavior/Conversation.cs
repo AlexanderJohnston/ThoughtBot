@@ -9,6 +9,10 @@ namespace Realization.Converse
         public bool Focusing;
         public string Topic;
         public string Author;
+        public List<string> Context = new List<string>();
+        public List<string> Memories = new List<string>();
         private Mood Outlook;
+
+
     }
 }
