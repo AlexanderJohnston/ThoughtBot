@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Folder Include="Instinct\" />
+    <Folder Include="Perception\" />
   </ItemGroup>
 
 </Project>

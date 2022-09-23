@@ -66,4 +66,4 @@ async Task JoinDiscord(DiscordSocketClient client, string key)
 async Task ExecutiveFunction(DiscordSocketClient client, CommandService commands) =>
 	await Awareness(client, commands).ConfigureBotServices();
 
-Cortex Awareness(DiscordSocketClient client, CommandService commands) => new Cortex(client, commands);
+Thalamus Awareness(DiscordSocketClient client, CommandService commands) => new Thalamus(client, commands);

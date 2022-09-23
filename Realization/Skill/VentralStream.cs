@@ -14,7 +14,7 @@ namespace Realization.Skill
         public void Listen(AuditorySignal signal)
         {
             var conversation = RecognizeConversation(signal);
-            conversation.Memories.Add(signal.MemoryId);
+            conversation.Memories.Add(new Message() { Id = signal.MemoryId, Author = signal.Source });
         }
         private Conversation RecognizeConversation(AuditorySignal signal)
         {
@@ -22,7 +22,7 @@ namespace Realization.Skill
                 return Dialogue.First(dialogue => Conversation(dialogue).Topic == signal.Topic).Value;
             else
             {
-                var person = new Person { Name = signal.Source };
+                var person = new Person { Id = signal.Source };
                 var people = new People(new() { person });
                 var convo = new Conversation()
                 {
@@ -65,12 +65,13 @@ namespace Realization.Skill
     public class Person
     {
         public string Name { get; set; }
+        public ulong Id { get; set; }
     }
 
     public class AuditorySignal
     {
-        public string Source { get; set; }
-        public string MemoryId { get; set; }
+        public ulong Source { get; set; }
+        public Guid MemoryId { get; set; }
         public string Context { get; set; }
         public string Topic { get; set; }
     }

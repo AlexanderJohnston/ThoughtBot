@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThotApi", "ThotApi\ThotApi.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThotLibrary", "ThotLibrary\ThotLibrary.csproj", "{75361E66-4CE9-4A15-A8C7-BF42F46EE962}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realization", "Realization\Realization.csproj", "{4CB55ED2-FBEE-471F-BBAB-C47AEAC34835}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Realization", "Realization\Realization.csproj", "{4CB55ED2-FBEE-471F-BBAB-C47AEAC34835}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Memory", "Memory\Memory.csproj", "{02A8B32F-7418-4367-8B11-26315D9AB718}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{4CB55ED2-FBEE-471F-BBAB-C47AEAC34835}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CB55ED2-FBEE-471F-BBAB-C47AEAC34835}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CB55ED2-FBEE-471F-BBAB-C47AEAC34835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02A8B32F-7418-4367-8B11-26315D9AB718}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02A8B32F-7418-4367-8B11-26315D9AB718}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02A8B32F-7418-4367-8B11-26315D9AB718}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02A8B32F-7418-4367-8B11-26315D9AB718}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -14,7 +14,8 @@ namespace Realization.Skill
         Command,
         Question,
         FormulatedIntent,
-        LearnedSkill
+        LearnedSkill,
+        Unknown
     }
     public class MemoryContext
     {
@@ -24,8 +25,9 @@ namespace Realization.Skill
         public MemoryType Type;
         public ulong Channel;
         public Intention Intention;
+        public Guid Id;
         
-        public MemoryContext(string userName, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
+        public MemoryContext(string userName, MemoryType type, ulong channel, Intention intention, Guid id, string relatedContext = "")
         {
             Author = userName;
             Type = type;
@@ -33,6 +35,7 @@ namespace Realization.Skill
             RelatedToContextId = relatedContext;
             ContextId = Guid.NewGuid().ToString();
             Intention = intention;
+            Id = id;
         }
     }
     public class Memory<T>
@@ -51,7 +54,7 @@ namespace Realization.Skill
             Users = new Dictionary<ulong, List<Memory<T>>>();
         }
 
-        public void Remember(T value, IUser user, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
+        public Guid Remember(T value, IUser user, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
         {
             var userId = user.DiscriminatorValue;
 
@@ -62,9 +65,11 @@ namespace Realization.Skill
 
             var memories = Recall(userId);
             var memory = new Memory<T>();
+            var id = Guid.NewGuid();
             memory.Value = value;
-            memory.Context = new MemoryContext(user.Username, type, channel, intention, relatedContext);
+            memory.Context = new MemoryContext(user.Username, type, channel, intention, id, relatedContext);
             memories.Add(memory);
+            return id;
         }
 
         public string GetFocusedMemory(SocketUser user) => FocusedMemory.FirstOrDefault(memory => memory.Key == user.DiscriminatorValue).Value;
@@ -118,5 +123,9 @@ namespace Realization.Skill
         private List<Memory<T>> Recall(ulong userId) => Users.First(user => user.Key == userId).Value;
         private Memory<T> Specific(string context, ulong userId) => 
             Recall(userId).First(memory => Matches(memory, context));
+        //public Memory<T> Specific(Guid id)
+        //{
+            
+        //}
     }
 }

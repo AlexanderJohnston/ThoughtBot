@@ -11,10 +11,13 @@ namespace ThotBot.Skill
 {
     public enum MemoryType 
     {
+        Discussion,
         Command,
         Question,
         FormulatedIntent,
-        LearnedSkill
+        LearnedSkill,
+        Learning,
+        Listening
     }
     public class MemoryContext
     {
