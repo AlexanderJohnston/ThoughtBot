@@ -29,8 +29,8 @@ namespace Realization
         private readonly CommandService _commands;
         private ServiceProvider _provider;
         private string AllowedChannel = "bottest";
-        private bool _sleeping;
-        private bool _quiet;
+        private bool _sleeping = true;
+        private bool _quiet = true;
         private SocketUser _self;
 
         public Thalamus(DiscordSocketClient client, CommandService commands)
@@ -92,7 +92,7 @@ namespace Realization
 
             // Handle deterministic commands like putting the bot to sleep or checking memory.
             var happened = await BasicCommands(message);
-            if (happened)
+            if (happened || _sleeping)
                 return;
 
             // Predict the user's intention and then send it to short term memory.
@@ -103,7 +103,9 @@ namespace Realization
                 var memId = _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id, prediction.Intent);
                 var userSignal = new AuditorySignal() { Context = prediction.Intent.Name, MemoryId = memId, Source = message.Author.Id };
                 Auditory.Listen(userSignal);
-                var response = await Cortex.PredictResponse(message);
+                var wovenRequest = Wove(messageParam.Channel.Id);
+                //var wovenRequest = Weave(messageParam.Channel.Id, messageParam.Author.Username, message.Content);
+                var response = await Cortex.PredictResponse(message, wovenRequest);
                 if (_self != null)
                 {
                     var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id, prediction.Intent);
@@ -155,11 +157,11 @@ namespace Realization
             if (message.Content.Contains("move Thought here"))
             {
                 AllowedChannel = message.Channel.Name;
-                return false;
+                return true;
             }
 
             // Restrict message handling to one channel.
-            if (message.Channel.Name != AllowedChannel) return false;
+            if (message.Channel.Name != AllowedChannel) return true;
 
             // Check for wake and sleep messages
             if (message.Content.Contains("wake up"))
@@ -168,7 +170,7 @@ namespace Realization
                 {
                     await message.Channel.SendMessageAsync("Waking up...");
                     _sleeping = false;
-                    return false;
+                    return true;
                 }
             }
             if (_sleeping) return false;
@@ -178,19 +180,19 @@ namespace Realization
                 {
                     await message.Channel.SendMessageAsync("Going into low power mode...");
                     _sleeping = true;
-                    return false;
+                    return true;
                 }
             }
 
             if (message.Content.Contains("quiet mode"))
             {
                 _quiet = true;
-                return false;
+                return true;
             }
             if (message.Content.Contains("verbose mode"))
             {
                 _quiet = false;
-                return false;
+                return true;
             }
 
             // Pass the message to the conversation handler for the first pass of hard-coded responses.
@@ -215,16 +217,20 @@ namespace Realization
             {
                 var dialogue = JsonConvert.SerializeObject(Auditory.Dialogue);
                 await messageParam.Channel.SendMessageAsync(dialogue);
+
                 return true;
             }
             if (message.Contains("everything you remember"))
             {
-                var memories = _memory.AllMemories(messageParam.Author);
-                var bot = _memory.AllMemories(_self);
-                var interleaved = memories.Interleave(bot);
+                var memories = _memory.AllMemories(messageParam.Channel.Id);
                 var sb = new StringBuilder();
-                foreach (var memory in interleaved)
-                    sb.AppendLine(memory);
+                foreach (var memory in memories)
+                {
+                    sb.Append((string)memory.Context.Author);
+                    sb.Append(": ");
+                    sb.Append((string)(memory.Value.Trim()));
+                    sb.AppendLine();
+                }
                 await messageParam.Channel.SendMessageAsync(sb.ToString());
                 return true;
             }
@@ -244,6 +250,39 @@ namespace Realization
                 return true;
             }
             return false;
+        }
+        public string Weave(ulong channelId, string author, string message)
+        {
+            var memories = _memory.AllMemories(channelId);
+            var sb = new StringBuilder();
+            foreach (var memory in memories)
+            {
+                sb.Append((string)memory.Context.Author);
+                sb.Append(": ");
+                sb.Append((string)(memory.Value.Trim()));
+                sb.AppendLine();
+            }
+            sb.Append(author);
+            sb.Append(": ");
+            sb.Append((string)(message.Trim()));
+            sb.AppendLine();
+            return sb.ToString();
+        }
+
+        public string Wove(ulong channelId)
+        {
+            var memories = _memory.AllMemories(channelId);
+            var sb = new StringBuilder();
+            foreach (var memory in memories)
+            {
+                sb.Append((string)memory.Context.Author);
+                sb.Append(": ");
+                sb.Append((string)(memory.Value.Trim()));
+                sb.AppendLine();
+            }
+            sb.Append(_self.Username);
+            sb.Append(": ");
+            return sb.ToString();
         }
     }
 

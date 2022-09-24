@@ -57,10 +57,10 @@ namespace Realization
             return new PredictedIntent(intent.Predicted, formulatedJson);
         }
 
-        public async Task<string> PredictResponse(IMessage message)
+        public async Task<string> PredictResponse(IMessage message, string content)
         {
             var responseEngine = new ResponsePredictionEngine(Intentions);
-            var response = await responseEngine.PredictResponse(message.Content);
+            var response = await responseEngine.PredictResponse(content);
             await message.Channel.SendMessageAsync(response);
             return response;
         }

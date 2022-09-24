@@ -47,11 +47,13 @@ namespace Realization.Skill
     {
         private Dictionary<ulong, string> FocusedMemory;
         private Dictionary<ulong, List<Memory<T>>> Users;
+        private Dictionary<ulong, List<Memory<T>>> Channels;
 
         public ShortTermMemory()
         {
             FocusedMemory = new Dictionary<ulong, string>();
             Users = new Dictionary<ulong, List<Memory<T>>>();
+            Channels = new Dictionary<ulong, List<Memory<T>>>();
         }
 
         public Guid Remember(T value, IUser user, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
@@ -60,15 +62,21 @@ namespace Realization.Skill
 
             if (!Remembers(userId))
             {
-                Users.Add(userId, new List<Memory<T>>());
+                Users.Add(userId, new List<Memory<T>>());           
+            }
+            if (!RememberChannel(channel))
+            {
+                Channels.Add(channel, new List<Memory<T>>());
             }
 
             var memories = Recall(userId);
+            var channelList = RecallChannel(channel);
             var memory = new Memory<T>();
             var id = Guid.NewGuid();
             memory.Value = value;
             memory.Context = new MemoryContext(user.Username, type, channel, intention, id, relatedContext);
             memories.Add(memory);
+            channelList.Add(memory);
             return id;
         }
 
@@ -117,10 +125,14 @@ namespace Realization.Skill
             }
             return explainedMemories;
         }
+
+        public List<Memory<T>> AllMemories(ulong channel) => RecallChannel(channel);
         
         private bool Matches(Memory<T> memory, string context) => memory.Context.ContextId == context;
+        public bool RememberChannel(ulong channelId) => Channels.Any(channel => channel.Key == channelId);
         public bool Remembers(ulong userId) => Users.Any(user => user.Key == userId);
         private List<Memory<T>> Recall(ulong userId) => Users.First(user => user.Key == userId).Value;
+        private List<Memory<T>> RecallChannel(ulong channelId) => Channels.First(channel => channel.Key == channelId).Value;
         private Memory<T> Specific(string context, ulong userId) => 
             Recall(userId).First(memory => Matches(memory, context));
         //public Memory<T> Specific(Guid id)
