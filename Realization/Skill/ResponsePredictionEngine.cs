@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Realization.Intent;
 using ThotLibrary;
+using Discord;
 
 namespace Realization.Skill
 {
@@ -32,42 +33,55 @@ namespace Realization.Skill
             Intentions = intentions;
         }
 
-        public async Task LearnIntent(string name)
+        public async Task<string> PredictTopicShift(string message, string currentTopic)
         {
-            var queryString = HttpUtility.ParseQueryString($"intents?{name}");
-            throw new NotImplementedException();
+            var templateForPrompt = Prompts.TopicShift;
+            var prompt = string.Format(templateForPrompt, currentTopic, message);
+            return await PredictResponse(prompt, "text-curie-001");
         }
 
-        public async Task<string> PredictResponse(string message)
+        public async Task<string> LearnIntent(string message)
+        {
+            var templateForPrompt = Prompts.Intent;
+            var prompt = string.Format(templateForPrompt, message);
+            return await PredictResponse(prompt, "text-curie-001");
+        }
+
+        public UriBuilder BuildRequestToOpenAi()
         {
             var uriBuilder = new UriBuilder(_openUriTemplate);
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "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");
             SetClientHeaders();
+            return uriBuilder;
+        }              
+
+        public HttpRequestMessage BuildHttpMessage(Uri uri, float temperature, int maxTokens, string message, string aiModel = "text-davinci-002")
+        {
             var testJson = JsonConvert.SerializeObject(new
             {
-                model = "text-davinci-002",
+                model = aiModel,
                 prompt = message,
-                temperature = 0.7f,
-                max_tokens = 100
+                temperature = temperature,
+                max_tokens = maxTokens
             });
-
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = uriBuilder.Uri,
+                RequestUri = uri,
                 Content = new StringContent(testJson, Encoding.UTF8, MediaTypeNames.Application.Json /* or "application/json" in older versions */),
             };
+            return request;
+        }
+
+        public async Task<string> PredictResponse(string message, string model = "text-davinci-002")
+        {
+            var uriBuilder = BuildRequestToOpenAi();
+            var request = BuildHttpMessage(uriBuilder.Uri, 0.7f, 256, message, model);
             var response = await _client.SendAsync(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
             var deserialize = JsonConvert.DeserializeObject<GptPredictionResponse>(responseBody);
-
             return deserialize.choices.FirstOrDefault().text;
-
-            //var predictionJson = await _client.GetStringAsync(uriBuilder.Uri);
-            //var response = JsonConvert.DeserializeObject<PredictionResponse>(predictionJson);
         }
 
         public async Task<FormulatedIntent> PredictAsync(string message)

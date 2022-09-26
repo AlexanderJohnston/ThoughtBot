@@ -98,21 +98,48 @@ namespace Realization
             // Predict the user's intention and then send it to short term memory.
             if (!_quiet)
             {
-                // step 2 Message is sent to LUIS to predict the intention.
-                var prediction = await Cortex.PredictIntention(messageParam);
-                var memId = _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id, prediction.Intent);
-                var userSignal = new AuditorySignal() { Context = prediction.Intent.Name, MemoryId = memId, Source = message.Author.Id };
+                var memId = _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id, new None());
+                // Decide if the topic has shifted and needs to be updated.
+                string currentTopic;
+                string topicShift;
+                var wovenTopicRequest = Wove(messageParam.Channel.Id);
+                if (Auditory.TopicExists(message.Author.Id))
+                {
+                    currentTopic = Auditory.TopicLookup.First(person => person.Key.Id == message.Author.Id).Value;
+                    topicShift = await Cortex.PredictTopicShift(message, currentTopic, wovenTopicRequest);
+                }
+                else
+                {
+                    currentTopic = "";
+                    topicShift = await Cortex.PredictTopicShift(message, currentTopic, wovenTopicRequest);
+                }
+                string gpt3Intent;
+                Intention prediction;
+                if (topicShift.Contains("Yes"))
+                {
+                    gpt3Intent = await Cortex.PredictGptIntent(message);
+                    prediction = new None(gpt3Intent);
+                }
+                else
+                {
+                    gpt3Intent = currentTopic;
+                    prediction = new None(gpt3Intent);
+                }
+                var userSignal = new AuditorySignal() { Context = prediction.Name, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name };
                 Auditory.Listen(userSignal);
                 var wovenRequest = Wove(messageParam.Channel.Id);
                 //var wovenRequest = Weave(messageParam.Channel.Id, messageParam.Author.Username, message.Content);
                 var response = await Cortex.PredictResponse(message, wovenRequest);
                 if (_self != null)
                 {
-                    var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id, prediction.Intent);
-                    var incomingSignal = new AuditorySignal() { Context = new None().Name, MemoryId = botMemId, Source = _self.Id };
+                    var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id, prediction);
+                    var incomingSignal = new AuditorySignal() { Context = gpt3Intent, MemoryId = botMemId, Source = _self.Id, Topic = prediction.Name };
                     Auditory.Listen(incomingSignal);
                 }
 
+
+
+                // ----- unfinished layer ------
 
                 //if (_memory.Remembers(message.Author.DiscriminatorValue))
                 //{
@@ -193,6 +220,14 @@ namespace Realization
             {
                 _quiet = false;
                 return true;
+            }
+            if (message.Content.Contains("reset the thalamus"))
+            {
+                Limbic = new();
+                Auditory = new();
+                _memory = new ShortTermMemory<string>();
+                _sleeping = true;
+                _quiet = true;
             }
 
             // Pass the message to the conversation handler for the first pass of hard-coded responses.

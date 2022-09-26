@@ -28,19 +28,6 @@ namespace Realization
             Intentions = intentions;
         }
 
-
-        //public bool Learning(Skill.Memory<string> memory) => memory.Context.Intention.Name == "Teach";
-
-        //public async Task RequestTraining(SocketUserMessage message)
-        //{
-        //    _memory.SaveFocusedMemory(message.Author, message.Content);
-        //    _remember = null;
-        //    await message.Channel.SendMessageAsync($"You want me to learn {message.Content}?");
-        //    return;
-        //}
-
-
-
         public async Task<PredictedIntent> PredictIntention(IMessage message)
         {
             var responseEngine = new ResponsePredictionEngine(Intentions);
@@ -50,11 +37,30 @@ namespace Realization
             {
                 return new PredictedIntent(new None(), formulatedJson);
             }
-            //var entities = JsonConvert.SerializeObject(intent.Entities);
-            //await message.Channel.SendMessageAsync(string.Format("I predict your intention is to {0} an entity list {1}.", intent.Predicted.Name, entities));
-            //await message.Channel.SendMessageAsync(string.Format("I predict your intention is {0}", intent.Predicted.Name));
-            
             return new PredictedIntent(intent.Predicted, formulatedJson);
+        }
+
+        public async Task<string> PredictTopicShift(IMessage message, string currentTopic, string customMessage = "")
+        {
+            if (customMessage == string.Empty)
+            {
+                var responseEngine = new ResponsePredictionEngine(Intentions);
+                var response = await responseEngine.PredictTopicShift(message.Content, currentTopic);
+                return response;
+            }
+            else
+            {
+                var responseEngine = new ResponsePredictionEngine(Intentions);
+                var response = await responseEngine.PredictTopicShift(customMessage, currentTopic);
+                return response;
+            }
+        }
+
+        public async Task<string> PredictGptIntent(IMessage message)
+        {
+            var responseEngine = new ResponsePredictionEngine(Intentions);
+            var response = await responseEngine.LearnIntent(message.Content);
+            return response;
         }
 
         public async Task<string> PredictResponse(IMessage message, string content)
@@ -63,21 +69,6 @@ namespace Realization
             var response = await responseEngine.PredictResponse(content);
             await message.Channel.SendMessageAsync(response);
             return response;
-        }
-
-        
-
-        private void ToBeImplemented()
-        {
-            // Create a WebSocket-based command context based on the message
-            //var context = new SocketCommandContext(_client, message);
-            //var result = await _commands.ExecuteAsync(
-            //    context: context,
-            //    argPos: argPos,
-            //    services: _provider);
-
-            //if (!result.IsSuccess)
-            //    await context.Channel.SendMessageAsync(result.ErrorReason);
         }
     }
 }
