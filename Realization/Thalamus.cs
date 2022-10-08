@@ -31,6 +31,7 @@ namespace Realization
         private string AllowedChannel = "bottest";
         private bool _sleeping = true;
         private bool _quiet = true;
+        private bool _imagine = false;
         private SocketUser _self;
 
         public Thalamus(DiscordSocketClient client, CommandService commands)
@@ -61,39 +62,19 @@ namespace Realization
                 if (message.Author.Username == "Thought")
                 {
                     _self = message.Author;
-                    //var memId = _memory.Remember(messageParam.Content, messageParam.Author, MemoryType.Unknown, messageParam.Channel.Id, new None());
-                    //var incomingSignal = new AuditorySignal() { Context = new None().Name, MemoryId = memId, Source = _self.Id };
-                    //Auditory.Listen(incomingSignal);
                 }
                 return;
             }
-
-            //Skill.Memory<string> lastMemory;
-            //if (_memory.Remembers(message.Author.Id))
-            //{
-                //lastMemory = _memory.LastMemoryObject(message.Author);
-                //if (FamiliarConversation(message))
-                //    if (Learning(lastMemory)) { }
-                //await RequestTraining(message);
-            //}
-
-            // Determine what the bot is paying attention to
-
-            // single vs. multiple conversation partners
-            // parallel conversations
-
-            // Determine the bot's mood
-
-            //  
-
-
-
-            // .....
 
             // Handle deterministic commands like putting the bot to sleep or checking memory.
             var happened = await BasicCommands(message);
             if (happened || _sleeping)
                 return;
+
+            if (_imagine)
+            {
+
+            }
 
             // Predict the user's intention and then send it to short term memory.
             if (!_quiet)
@@ -186,7 +167,12 @@ namespace Realization
                 AllowedChannel = message.Channel.Name;
                 return true;
             }
-
+            // Go into prototyping mode.
+            if (message.Content.Contains("imagine dragons"))
+            {
+                _imagine = true;
+                return true;
+            }
             // Restrict message handling to one channel.
             if (message.Channel.Name != AllowedChannel) return true;
 
