@@ -38,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AzureLUIS\AzureLUIS.csproj" />
     <ProjectReference Include="..\ThotLibrary\ThotLibrary.csproj" />
   </ItemGroup>
 

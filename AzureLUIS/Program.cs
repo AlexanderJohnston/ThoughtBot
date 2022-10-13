@@ -14,11 +14,11 @@ using Azure.AI.Language.Conversations.Authoring;
 using AzureLUIS;
 using Azure.AI.TextAnalytics;
 
-LUISAuthoringClient Client(string endpoint, AuthorCredentials credentials) =>
-    new LUISAuthoringClient(credentials) { Endpoint = endpoint };
-AuthorCredentials AuthorCredentials(string key) => new AuthorCredentials(key);
-LUISAuthoringClient LUIS(string key, string endpoint) => 
-    Client(endpoint, AuthorCredentials(key));
+//LUISAuthoringClient Client(string endpoint, AuthorCredentials credentials) =>
+//    new LUISAuthoringClient(credentials) { Endpoint = endpoint };
+//AuthorCredentials AuthorCredentials(string key) => new AuthorCredentials(key);
+//LUISAuthoringClient LUIS(string key, string endpoint) => 
+//    Client(endpoint, AuthorCredentials(key));
 
 CognitiveServices CallToCLU()
 {

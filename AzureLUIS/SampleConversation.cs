@@ -135,11 +135,12 @@ namespace AzureLUIS
     public class CognitiveLanguageUnderstanding
     {
         public CognitiveServices Services;
-        //public Dictionary<CognitiveAction, List<string>> Documents;
         public List<DocumentBatch> Batches = new();
 
 
         public CognitiveLanguageUnderstanding(CognitiveServices services) => Services = services;
+
+        //public void 
 
         public void Batch(List<string> documents, List<CognitiveAction> actions) => 
             Batches.Add(new() { Documents = documents, Actions = actions });
@@ -178,7 +179,6 @@ namespace AzureLUIS
         private AnalyticsRequest BuildRequest(List<string> documents, TextAnalyticsActions actions)
         {
             return new AnalyticsRequest(documents, actions);
-
         }
     }
 

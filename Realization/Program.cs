@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Realization;
 using PostSharp.Patterns.Diagnostics;
 using PostSharp.Patterns.Diagnostics.Backends.Serilog;
+using AzureLUIS;
 #endregion
 
 await Think();
@@ -14,12 +15,13 @@ await StayAlive();
 
 async Task Think()
 {
-	AutomaticLogs();
+    AutomaticLogs();
 	var key = Authorization();
 	var discord = Discord();
+    var clue = CallCognitiveServices();
 	var commands = CommandService();
-	TrackMessages(ref discord);
-	await JoinDiscord(discord, key);
+    TrackMessages(ref discord);
+    await JoinDiscord(discord, key);
 	await ExecutiveFunction(discord, commands);
 }
 async Task StayAlive() => await Task.Delay(-1);
@@ -31,6 +33,8 @@ void AutomaticLogs()
 	LoggingServices.DefaultBackend =
 			new SerilogLoggingBackend(Log.ForContext("RuntimeContext", "PostSharp"));
 }
+
+GetAClue CallCognitiveServices() => new GetAClue();
 
 string Authorization()
 {
