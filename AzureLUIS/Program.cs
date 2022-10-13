@@ -11,6 +11,8 @@ using Realization.Services;
 using Azure;
 using Azure.AI.Language.Conversations;
 using Azure.AI.Language.Conversations.Authoring;
+using AzureLUIS;
+using Azure.AI.TextAnalytics;
 
 LUISAuthoringClient Client(string endpoint, AuthorCredentials credentials) =>
     new LUISAuthoringClient(credentials) { Endpoint = endpoint };
@@ -21,12 +23,13 @@ LUISAuthoringClient LUIS(string key, string endpoint) =>
 CognitiveServices CallToCLU()
 {
     var key = File.ReadAllText(Environment.CurrentDirectory + "\\key");
-    Uri endpoint = new Uri("https://realization.cognitiveservices.azure.com");
+    Uri endpoint = new Uri("https://realize.cognitiveservices.azure.com");
     AzureKeyCredential credential = new AzureKeyCredential(key);
 
     ConversationAnalysisClient analyzer = new ConversationAnalysisClient(endpoint, credential);
     ConversationAuthoringClient author = new ConversationAuthoringClient(endpoint, credential);
-    return new CognitiveServices(analyzer, author);
+    TextAnalyticsClient textAnalytics = new TextAnalyticsClient(endpoint, credential);
+    return new CognitiveServices(analyzer, author, textAnalytics);
     // https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/cognitivelanguage/Azure.AI.Language.Conversations/README.md
 }
 void LegacyLUIS()
@@ -47,11 +50,23 @@ void LegacyLUIS()
 var cognition = CallToCLU();
 
 // Analyze Language
-DetectLanguage(cognition);
+await TestBatch(cognition);
+Console.ReadLine();
+//DetectLanguage(cognition);
+
+async Task TestBatch(CognitiveServices cognition)
+{
+    var convo = new SampleConversation(cognition);
+    await convo.AsyncBatch();
+}
 
 void DetectLanguage(CognitiveServices cognition)
 {
-    
+    var convo = new SampleConversation(cognition);
+    convo.Respond(convo.Hydrate());
+    convo.RespondEmail(convo.HydrateEmail());
+    convo.RespondComplaints(convo.HydrateComplaints());
+    convo.RecognizeEntities(convo.HydrateEntities());
 }
 
 // Analyze Sentiment
@@ -85,15 +100,17 @@ void FindLinks(CognitiveServices cognition)
 {
     throw new NotImplementedException();
 }
-internal class CognitiveServices
+public class CognitiveServices
 {
-    ConversationAnalysisClient Analysis;
-    ConversationAuthoringClient Author;
+    public ConversationAnalysisClient Analysis;
+    public ConversationAuthoringClient Author;
+    public TextAnalyticsClient TextAnalyzer;
 
-    public CognitiveServices(ConversationAnalysisClient analysis, ConversationAuthoringClient author)
+    public CognitiveServices(ConversationAnalysisClient analysis, ConversationAuthoringClient author, TextAnalyticsClient textClient)
     {
         Analysis = analysis;
         Author = author;
+        TextAnalyzer = textClient;
     }
 }
 #endregion
