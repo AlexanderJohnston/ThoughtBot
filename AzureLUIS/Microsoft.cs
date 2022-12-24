@@ -16,7 +16,7 @@ namespace AzureLUIS
 
         public GetAClue() => Understanding = new (CallCLU());
 
-        public CognitiveServices CallCLU()
+        private CognitiveServices CallCLU()
         {
             var key = File.ReadAllText(Environment.CurrentDirectory + "\\key");
             Uri endpoint = new Uri("https://realize.cognitiveservices.azure.com");

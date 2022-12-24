@@ -50,7 +50,8 @@ void LegacyLUIS()
 var cognition = CallToCLU();
 
 // Analyze Language
-await TestBatch(cognition);
+DetectLanguage(cognition);
+//await TestBatch(cognition);
 Console.ReadLine();
 //DetectLanguage(cognition);
 

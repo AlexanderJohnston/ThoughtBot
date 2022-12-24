@@ -24,6 +24,7 @@ async Task Think()
     await JoinDiscord(discord, key);
 	await ExecutiveFunction(discord, commands);
 }
+
 async Task StayAlive() => await Task.Delay(-1);
 
 void AutomaticLogs()
@@ -34,7 +35,7 @@ void AutomaticLogs()
 			new SerilogLoggingBackend(Log.ForContext("RuntimeContext", "PostSharp"));
 }
 
-GetAClue CallCognitiveServices() => new GetAClue();
+GetAClue CallCognitiveServices() => new();
 
 string Authorization()
 {
@@ -49,9 +50,9 @@ DiscordSocketConfig Declarations() => new DiscordSocketConfig()
     GatewayIntents = GatewayIntents.All
 };
 
-DiscordSocketClient Discord() => new DiscordSocketClient(Declarations());
+DiscordSocketClient Discord() => new(Declarations());
 
-CommandService CommandService() => new CommandService();
+CommandService CommandService() => new();
 
 void TrackMessages(ref DiscordSocketClient client)
 {
@@ -70,4 +71,4 @@ async Task JoinDiscord(DiscordSocketClient client, string key)
 async Task ExecutiveFunction(DiscordSocketClient client, CommandService commands) =>
 	await Awareness(client, commands).ConfigureBotServices();
 
-Thalamus Awareness(DiscordSocketClient client, CommandService commands) => new Thalamus(client, commands);
+Thalamus Awareness(DiscordSocketClient client, CommandService commands) => new Thalamus(client, commands, CallCognitiveServices());

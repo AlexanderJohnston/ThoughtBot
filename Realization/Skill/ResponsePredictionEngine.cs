@@ -16,17 +16,13 @@ using Discord;
 
 namespace Realization.Skill
 {
-    public class ResponsePredictionEngine
+    public class ResponsePredictionEngine : CognitiveHttpClient
     {
-        private string _uriTemplate = @"https://westus.api.cognitive.microsoft.com/luis/prediction/v3.0/apps/{0}/slots/{1}/predict";
         private string _authorTemplate = @"https://westus.api.cognitive.microsoft.com/luis/authoring/v3.0/apps/{0}/versions/{1}/";
-        private string _openUriTemplate = @"https://api.openai.com/v1/completions";
-
-        private readonly HttpClient _client = new HttpClient();
+        private readonly string _cognitiveUriTemplate = @"https://realize.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-10-01-preview";
+        private readonly string _openUriTemplate = @"https://api.openai.com/v1/completions";
 
         public List<Intention> Intentions = new List<Intention>();
-
-        public string BuildUriTemplate(string appId, string slot) => string.Format(_uriTemplate, appId, slot);
 
         public ResponsePredictionEngine(List<Intention> intentions)
         {
@@ -37,25 +33,36 @@ namespace Realization.Skill
         {
             var templateForPrompt = Prompts.TopicShift;
             var prompt = string.Format(templateForPrompt, currentTopic, message);
-            return await PredictResponse(prompt, "text-curie-001");
+            return await PredictResponse(prompt, "text-ada-001");
         }
 
         public async Task<string> LearnIntent(string message)
         {
             var templateForPrompt = Prompts.Intent;
             var prompt = string.Format(templateForPrompt, message);
-            return await PredictResponse(prompt, "text-curie-001");
+            return await PredictResponse(prompt, "text-ada-001");
         }
 
-        public UriBuilder BuildRequestToOpenAi()
+        public async Task<string> PredictResponse(string message, string model = "text-ada-001")
+        {
+            var uriBuilder = BuildRequestToOpenAi();
+            var request = OpenAIRequest(uriBuilder.Uri, 0.7f, 256, message, "text-ada-001");
+            HttpResponseMessage response = await DefaultResponder(request).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var deserialize = JsonConvert.DeserializeObject<GptPredictionResponse>(responseBody);
+            return deserialize.choices.FirstOrDefault().text;
+        }
+
+        private UriBuilder BuildRequestToOpenAi()
         {
             var uriBuilder = new UriBuilder(_openUriTemplate);
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "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");
-            SetClientHeaders();
+            // TODO cleanse tokens from source
+            SetBearerToken("");
             return uriBuilder;
-        }              
+        }
 
-        public HttpRequestMessage BuildHttpMessage(Uri uri, float temperature, int maxTokens, string message, string aiModel = "text-davinci-002")
+        private HttpRequestMessage OpenAIRequest(Uri uri, float temperature, int maxTokens, string message, string aiModel = "text-ada-002")
         {
             var testJson = JsonConvert.SerializeObject(new
             {
@@ -73,24 +80,12 @@ namespace Realization.Skill
             return request;
         }
 
-        public async Task<string> PredictResponse(string message, string model = "text-davinci-002")
-        {
-            var uriBuilder = BuildRequestToOpenAi();
-            var request = BuildHttpMessage(uriBuilder.Uri, 0.7f, 256, message, model);
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserialize = JsonConvert.DeserializeObject<GptPredictionResponse>(responseBody);
-            return deserialize.choices.FirstOrDefault().text;
-        }
-
         public async Task<FormulatedIntent> PredictAsync(string message)
         {
             var uriBuilder = CognitiveServicesUri(message);
-            SetClientHeaders();
 
             // Make the prediction and get the response.
-            var predictionJson = await _client.GetStringAsync(uriBuilder.Uri);
+            string predictionJson = await DefaultGet(uriBuilder);
             var response = JsonConvert.DeserializeObject<PredictionResponse>(predictionJson);
 
             // Unpack the top intention from the prediction.
@@ -105,34 +100,6 @@ namespace Realization.Skill
                 return new FormulatedIntent() { Predicted = Intentions.First(intent => intent.Name == intention), Entities = entities };
             else
                 return new FormulatedIntent() { Predicted = new None() };
-        }
-
-        private void SetClientHeaders()
-        {
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-            //_client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "19b4bb7d2b5348919647946c54b7ba00");
-        }
-
-        private UriBuilder CognitiveServicesUri(string message)
-        {
-            var uriTemplate = BuildUriTemplate("bb7e751e-9ab5-49a4-abc5-1dc36709b56f", "staging");
-            var builder = new UriBuilder(uriTemplate);
-            var query = HttpUtility.ParseQueryString(string.Empty);
-            query["subscription-key"] = "fee758b0a7fe4eb9b7ca9adca180f4ae";
-            query["verbose"] = "false";
-            query["log"] = "false";
-            query["show-all-intents"] = "true";
-            query["query"] = message;
-
-            builder.Query = query.ToString();
-            return builder;
-        }
-
-        private UriBuilder CognitiveAuthorUri(string message)
-        {
-            return new UriBuilder();
         }
     }
 

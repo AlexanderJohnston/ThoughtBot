@@ -16,6 +16,8 @@ using Realization.Learning;
 using Realization.Services;
 using Realization.Skill;
 using ThotLibrary;
+using AzureLUIS;
+
 namespace Realization
 {
     public class Thalamus
@@ -28,19 +30,22 @@ namespace Realization
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private ServiceProvider _provider;
-        private string AllowedChannel = "bottest";
+        private string AllowedChannel = "auto-intelligence";
         private bool _sleeping = true;
         private bool _quiet = true;
         private bool _imagine = false;
+        private List<Intention> _lastIntentions;
         private SocketUser _self;
+        private GetAClue _cognition;
 
-        public Thalamus(DiscordSocketClient client, CommandService commands)
+        public Thalamus(DiscordSocketClient client, CommandService commands, GetAClue cognition)
         {
             _commands = commands;
             _client = client;
+            _cognition = cognition;
             var plasticIntent = new PlasticIntentions();
-            var intentions = plasticIntent.DownloadIntentions();
-            Cortex = new Cortex(intentions);
+            _lastIntentions = plasticIntent.DownloadIntentions();
+            Cortex = new Cortex(_lastIntentions, _cognition);
             Attention = new ReticularSystem(_memory);
         }
 
@@ -59,7 +64,7 @@ namespace Realization
             var message = messageParam as SocketUserMessage;
             if (Attention.NotInterested(messageParam))
             {
-                if (message.Author.Username == "Thought")
+                if (message.Author.Username == "Vertex Intelligence")
                 {
                     _self = message.Author;
                 }
@@ -96,17 +101,19 @@ namespace Realization
                 }
                 string gpt3Intent;
                 Intention prediction;
+                AuditorySignal userSignal;
                 if (topicShift.Contains("Yes"))
                 {
                     gpt3Intent = await Cortex.PredictGptIntent(message);
                     prediction = new None(gpt3Intent);
+                    userSignal = new AuditorySignal() { Context = currentTopic, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name };
                 }
                 else
                 {
                     gpt3Intent = currentTopic;
                     prediction = new None(gpt3Intent);
+                    userSignal = new AuditorySignal() { Context = string.Empty, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name };
                 }
-                var userSignal = new AuditorySignal() { Context = prediction.Name, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name };
                 Auditory.Listen(userSignal);
                 var wovenRequest = Wove(messageParam.Channel.Id);
                 //var wovenRequest = Weave(messageParam.Channel.Id, messageParam.Author.Username, message.Content);
@@ -177,7 +184,7 @@ namespace Realization
             if (message.Channel.Name != AllowedChannel) return true;
 
             // Check for wake and sleep messages
-            if (message.Content.Contains("wake up"))
+            if (message.Content.Contains("power up"))
             {
                 if (_sleeping)
                 {
@@ -214,6 +221,16 @@ namespace Realization
                 _memory = new ShortTermMemory<string>();
                 _sleeping = true;
                 _quiet = true;
+                Cortex = new Cortex(_lastIntentions, _cognition);
+                Attention = new ReticularSystem(_memory);
+            }
+            if(message.Content.Contains("save this conversation"))
+            {
+                var json = JsonConvert.SerializeObject(_memory.AllMemories(message.Channel.Id));
+                var embed = await Cortex.EmbedMemory(message);
+                var saved = JsonConvert.SerializeObject(embed.Data);
+                File.WriteAllText("test", saved);
+                Log.Debug(JsonConvert.SerializeObject(embed));
             }
 
             // Pass the message to the conversation handler for the first pass of hard-coded responses.
