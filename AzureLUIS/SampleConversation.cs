@@ -1,14 +1,7 @@
 ﻿using Azure;
 using Azure.AI.TextAnalytics;
 using Azure.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace AzureLUIS
 {
@@ -142,7 +135,7 @@ namespace AzureLUIS
 
         //public void 
 
-        public void Batch(List<string> documents, List<CognitiveAction> actions) => 
+        public void Batch(List<string> documents, List<CognitiveAction> actions) =>
             Batches.Add(new() { Documents = documents, Actions = actions });
 
         public List<AnalyticsRequest> CondenseBatch()
@@ -196,7 +189,7 @@ namespace AzureLUIS
         {
             var language = new CognitiveLanguageUnderstanding(Cognitive);
             var complaints = HydrateComplaints();
-            var actions = new List<CognitiveAction>() { 
+            var actions = new List<CognitiveAction>() {
                 CognitiveAction.MineOpinions, CognitiveAction.RecognizeEntities, CognitiveAction.ExtractPhrases };
             language.Batch(complaints, actions);
             var requests = language.CondenseBatch();
@@ -208,7 +201,7 @@ namespace AzureLUIS
 
         public string HydrateEntities()
         {
-            return  @"We love this trail and make the trip every year. The views are breathtaking and well
+            return @"We love this trail and make the trip every year. The views are breathtaking and well
                     worth the hike! Yesterday was foggy though, so we missed the spectacular views.
                     We tried again today and it was amazing. Everyone in my family liked the trail although
                     it was too challenging for the less athletic among us.

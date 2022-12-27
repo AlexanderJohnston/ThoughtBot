@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ThotLibrary.Cognitive
+﻿namespace ThotLibrary.Cognitive
 {
     public class LearnedEntity
     {

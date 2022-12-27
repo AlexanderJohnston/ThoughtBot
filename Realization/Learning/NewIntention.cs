@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ThotLibrary.Cognitive;
+﻿using ThotLibrary.Cognitive;
 
 namespace Realization.Learning
 {

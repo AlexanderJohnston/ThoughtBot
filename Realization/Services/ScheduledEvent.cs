@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Realization.Services
+﻿namespace Realization.Services
 {
     public class ScheduledEvent
     {

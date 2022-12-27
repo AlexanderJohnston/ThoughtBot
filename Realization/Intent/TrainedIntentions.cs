@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Realization.Learning;
+﻿using Realization.Learning;
 using ThotLibrary.Cognitive;
-using ThotLibrary;
 
 namespace Realization.Intent
 {

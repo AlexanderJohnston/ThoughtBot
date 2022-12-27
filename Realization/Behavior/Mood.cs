@@ -1,9 +1,9 @@
 ﻿namespace Realization.Converse
 {
 
-    internal static class Personalities 
+    internal static class Personalities
     {
-        public static Personality Default() => new() 
+        public static Personality Default() => new()
         {
             Name = "Default",
             Description = "Reliable configuration the bot is designed to work best in.",

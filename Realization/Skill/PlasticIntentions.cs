@@ -1,16 +1,9 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net.Http;
+using Realization.Intent;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
-using Realization.Intent;
 using ThotLibrary;
 
 namespace Realization.Skill
@@ -75,16 +68,16 @@ namespace Realization.Skill
             var ab = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("PlasticAssembly"), AssemblyBuilderAccess.RunAndCollect);
             var mb = ab.DefineDynamicModule("Intent");
             var name = new AssemblyName(intentName).FullName;
-            var tb = mb.DefineType(name, 
+            var tb = mb.DefineType(name,
               TypeAttributes.Public |
-              TypeAttributes.Class, 
+              TypeAttributes.Class,
               null,
-              new[] {typeof(Intention)}
+              new[] { typeof(Intention) }
               );
             CreateProperty(tb, "Name", typeof(string));
             CreateProperty(tb, "Threshold", typeof(float));
             Type type = tb.CreateType();
-            return (Intention) Activator.CreateInstance(type);
+            return (Intention)Activator.CreateInstance(type);
         }
 
 

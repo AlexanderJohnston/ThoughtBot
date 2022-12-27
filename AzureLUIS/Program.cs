@@ -1,18 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Azure.CognitiveServices.Language.LUIS.Authoring;
-using Microsoft.Azure.CognitiveServices.Language.LUIS.Authoring.Models;
-using Microsoft.Azure.CognitiveServices.Language.LUIS.Runtime;
-using Microsoft.Azure.CognitiveServices.Language.LUIS.Runtime.Models;
-using Authoring = Microsoft.Azure.CognitiveServices.Language.LUIS.Authoring;
-using AuthorCredentials = Microsoft.Azure.CognitiveServices.Language.LUIS.Authoring.ApiKeyServiceClientCredentials;
-using Realization.Services;
-using Azure;
+﻿using Azure;
 using Azure.AI.Language.Conversations;
 using Azure.AI.Language.Conversations.Authoring;
-using AzureLUIS;
 using Azure.AI.TextAnalytics;
+using AzureLUIS;
+using Realization.Services;
 
 //LUISAuthoringClient Client(string endpoint, AuthorCredentials credentials) =>
 //    new LUISAuthoringClient(credentials) { Endpoint = endpoint };

@@ -1,9 +1,4 @@
 ﻿using Realization.Converse;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Realization.Skill
 {
@@ -45,7 +40,7 @@ namespace Realization.Skill
             //}
             if (ConversationExists(signal))
             {
-                
+
                 return Dialogue.First(dialogue => Conversation(dialogue).Topic == signal.Topic).Value;
             }
             else

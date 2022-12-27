@@ -1,5 +1,4 @@
-﻿using System;
-using Totem.Timeline.Hosting;
+﻿using Totem.Timeline.Hosting;
 
 
 namespace ThotLibrary

@@ -11,6 +11,6 @@ namespace Realization.Skill
         [JsonPropertyName("model")]
         public string Model { get; set; } = "text-embedding-ada-002-v2";
         [JsonPropertyName("usage")]
-        public UsageModel Usage {get; set; }
+        public UsageModel Usage { get; set; }
     }
 }

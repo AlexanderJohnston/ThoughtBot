@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Realization.Behavior
+﻿namespace Realization.Behavior
 {
 
     public class Template
@@ -12,7 +6,7 @@ namespace Realization.Behavior
     }
     public class Self
     {
-        
+
 
     }
 

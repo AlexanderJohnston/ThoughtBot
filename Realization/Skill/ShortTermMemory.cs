@@ -1,15 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Realization.Intent;
 using ThotLibrary;
 
 namespace Realization.Skill
 {
-    public enum MemoryType 
+    public enum MemoryType
     {
         Command,
         Question,
@@ -26,7 +21,7 @@ namespace Realization.Skill
         public ulong Channel;
         public Intention Intention;
         public Guid Id;
-        
+
         public MemoryContext(string userName, MemoryType type, ulong channel, Intention intention, Guid id, string relatedContext = "")
         {
             Author = userName;
@@ -62,7 +57,7 @@ namespace Realization.Skill
 
             if (!Remembers(userId))
             {
-                Users.Add(userId, new List<Memory<T>>());           
+                Users.Add(userId, new List<Memory<T>>());
             }
             if (!RememberChannel(channel))
             {
@@ -127,17 +122,17 @@ namespace Realization.Skill
         }
 
         public List<Memory<T>> AllMemories(ulong channel) => RecallChannel(channel);
-        
+
         private bool Matches(Memory<T> memory, string context) => memory.Context.ContextId == context;
         public bool RememberChannel(ulong channelId) => Channels.Any(channel => channel.Key == channelId);
         public bool Remembers(ulong userId) => Users.Any(user => user.Key == userId);
         private List<Memory<T>> Recall(ulong userId) => Users.First(user => user.Key == userId).Value;
         private List<Memory<T>> RecallChannel(ulong channelId) => Channels.First(channel => channel.Key == channelId).Value;
-        private Memory<T> Specific(string context, ulong userId) => 
+        private Memory<T> Specific(string context, ulong userId) =>
             Recall(userId).First(memory => Matches(memory, context));
         //public Memory<T> Specific(Guid id)
         //{
-            
+
         //}
     }
 }

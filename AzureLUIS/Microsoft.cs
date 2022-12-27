@@ -1,12 +1,7 @@
-﻿using Azure.AI.Language.Conversations.Authoring;
+﻿using Azure;
 using Azure.AI.Language.Conversations;
+using Azure.AI.Language.Conversations.Authoring;
 using Azure.AI.TextAnalytics;
-using Azure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AzureLUIS
 {
@@ -14,7 +9,7 @@ namespace AzureLUIS
     {
         public CognitiveLanguageUnderstanding Understanding;
 
-        public GetAClue() => Understanding = new (CallCLU());
+        public GetAClue() => Understanding = new(CallCLU());
 
         private CognitiveServices CallCLU()
         {

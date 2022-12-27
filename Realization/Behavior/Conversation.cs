@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Realization.Converse
+﻿namespace Realization.Converse
 {
     public class Conversation
     {

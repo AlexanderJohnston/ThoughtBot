@@ -1,15 +1,10 @@
-﻿using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Realization
+﻿namespace Realization
 {
     public static class LogExtensions
     {
         public const string Template =
             "{Timestamp:yyyy-MM-dd HH:mm:ss} |{Level:u3}: [Thread:{ThreadId}|{SourceContext}]{Indent:l} {Message:lj}{NewLine}{Exception}";
-        
+
         public static ILogger VerboseLogger()
         {
             var config = new LoggerConfiguration()

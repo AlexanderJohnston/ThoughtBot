@@ -1,22 +1,15 @@
-﻿using Discord;
+﻿using AzureLUIS;
+using Discord;
 using Discord.Commands;
-using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using PostSharp.Patterns.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Net.Mail;
+using Realization.Behavior;
+using Realization.Intent;
+using Realization.Skill;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using Realization.Intent;
-using Realization.Learning;
-using Realization.Services;
-using Realization.Skill;
 using ThotLibrary;
-using AzureLUIS;
 
 namespace Realization
 {
@@ -224,7 +217,7 @@ namespace Realization
                 Cortex = new Cortex(_lastIntentions, _cognition);
                 Attention = new ReticularSystem(_memory);
             }
-            if(message.Content.Contains("save this conversation"))
+            if (message.Content.Contains("save this conversation"))
             {
                 var json = JsonConvert.SerializeObject(_memory.AllMemories(message.Channel.Id));
                 var embed = await Cortex.EmbedMemory(message);
@@ -240,9 +233,9 @@ namespace Realization
                 var happened = await DeterministicResponse(message);
                 return happened;
             }
-            return false;   
+            return false;
         }
-        public async Task<bool> DeterministicResponse (IMessage messageParam)
+        public async Task<bool> DeterministicResponse(IMessage messageParam)
         {
             var message = messageParam.Content.ToLower();
             if (message.Contains("last memory"))

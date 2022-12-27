@@ -1,13 +1,13 @@
-﻿using Discord;
+﻿using Azure;
+using Azure.AI.TextAnalytics;
+using Azure.Core;
+using AzureLUIS;
+using Discord;
 using Newtonsoft.Json;
 using Realization.Intent;
 using Realization.Skill;
-using ThotLibrary;
-using AzureLUIS;
-using Azure.Core;
-using Azure;
 using System.Text.Json;
-using Azure.AI.TextAnalytics;
+using ThotLibrary;
 
 namespace Realization
 {
