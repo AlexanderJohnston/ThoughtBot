@@ -28,10 +28,10 @@ namespace Realization
         {
             var embedEngine = new EmbeddingEngine();
             var embed = await embedEngine.GetEmbedding(message);
-            var model = JsonConvert.SerializeObject(embed.Model);
-            var usage = JsonConvert.SerializeObject(embed.Usage);
-            var obj = JsonConvert.SerializeObject(embed.Object);
-            var data = JsonConvert.SerializeObject(embed.Data[0].Embedding.Take(10));
+            var model = JsonConvert.SerializeObject(embed.Embedding.Model);
+            var usage = JsonConvert.SerializeObject(embed.Embedding.Usage);
+            var obj = JsonConvert.SerializeObject(embed.Embedding.Object);
+            var data = JsonConvert.SerializeObject(embed.Embedding.Data[0].Embedding.Take(10));
             var template = @"model: {0}
 usage: {1},
 object: {2},

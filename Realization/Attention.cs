@@ -3,10 +3,10 @@ using Realization.Skill;
 
 namespace Realization
 {
-    /*ttention span system to track conversational contexts (threads) between people, sometimes multiple people at once in a single thread.
+    /*Attention span system to track conversational contexts (threads) between people, sometimes multiple people at once in a single thread.
       This is a very important system for the AI to have, as it is the basis for the AI to be able to understand and respond to the player.
       The AI will be able to track the player's attention span, and will be able to respond to the player's attention span.*/
-    class AttentionSpan
+    public class AttentionSpan
     {
         //This is the list of people that the AI is currently tracking.
         List<Person> people = new();
@@ -70,7 +70,7 @@ namespace Realization
         }
     }
     // Topic for the AI to track.
-    class Topic
+    public class Topic
     {
         //This is the name of the topic.
         string name;
@@ -114,7 +114,7 @@ namespace Realization
     }
 
     //Subject tracks the name of the subject and the context.
-    class Subject
+    public class Subject
     {
         //This is the name of the subject.
         string name;

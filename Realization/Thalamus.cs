@@ -10,11 +10,14 @@ using Realization.Skill;
 using System.Reflection;
 using System.Text;
 using ThotLibrary;
+using Totem.Runtime.Metrics;
 
 namespace Realization
 {
     public class Thalamus
     {
+        public AttentionSpan Focus = new();
+        public EmbeddingMemory LongMemory = new();
         public LimbicSystem Limbic = new();
         public VentralStream Auditory = new();
         public Cortex Cortex;
@@ -221,7 +224,7 @@ namespace Realization
             {
                 var json = JsonConvert.SerializeObject(_memory.AllMemories(message.Channel.Id));
                 var embed = await Cortex.EmbedMemory(message);
-                var saved = JsonConvert.SerializeObject(embed.Data);
+                var saved = JsonConvert.SerializeObject(embed.Embedding.Data);
                 File.WriteAllText("test", saved);
                 Log.Debug(JsonConvert.SerializeObject(embed));
             }
