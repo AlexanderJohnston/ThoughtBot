@@ -17,7 +17,9 @@ namespace Realization.Skill
         public async Task<EmbeddedMemory> GetEmbedding(IMessage message)
         {
             var request = Embed(message.Content);
-            return await Respond(request);
+            var embedding = await Respond(request);
+            var embedded = new EmbeddedMemory(embedding, message.Content);
+            return embedded;
         }
         public HttpRequestMessage Embed(string input, string model = "text-embedding-ada-002")
         {
@@ -36,12 +38,12 @@ namespace Realization.Skill
             SetBearerToken("");
             return request;
         }
-        public async Task<EmbeddedMemory> Respond(HttpRequestMessage request)
+        public async Task<GptEmbedding> Respond(HttpRequestMessage request)
         {
             HttpResponseMessage response = await DefaultResponder(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var deserialize = JsonConvert.DeserializeObject<EmbeddedMemory>(responseBody);
+            var deserialize = JsonConvert.DeserializeObject<GptEmbedding>(responseBody);
             return deserialize;
         }
     }

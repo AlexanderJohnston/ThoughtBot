@@ -2,7 +2,18 @@
 
 namespace Realization.Skill
 {
+    // Stores the GptEmbedding and the text used to embed it.
     public class EmbeddedMemory
+    {
+        public string Text { get; set; }
+        public GptEmbedding Embedding { get; set; }
+        public EmbeddedMemory(GptEmbedding embedding, string text)
+        {
+            Embedding = embedding;
+            Text = text;
+        }
+    }
+    public class GptEmbedding
     {
         [JsonPropertyName("object")]
         public string Object { get; set; }
