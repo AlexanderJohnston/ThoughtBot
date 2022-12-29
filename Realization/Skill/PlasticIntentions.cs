@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
-using Realization.Intent;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Web;
 using ThotLibrary;
+using Memory.Intent;
 
 namespace Realization.Skill
 {

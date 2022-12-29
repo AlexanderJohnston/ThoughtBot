@@ -1,6 +1,6 @@
 ﻿using ThotLibrary.Cognitive;
 
-namespace Realization.Learning
+namespace Memory.Learning
 {
     public class NewIntention
     {

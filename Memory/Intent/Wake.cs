@@ -1,6 +1,6 @@
 ﻿using ThotLibrary;
 
-namespace Realization.Intent
+namespace Memory.Intent
 {
     public class Wake : Intention
     {

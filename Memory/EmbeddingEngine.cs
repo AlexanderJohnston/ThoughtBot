@@ -8,12 +8,19 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Realization.Skill
+namespace Memory
 {
     public class EmbeddingEngine : CognitiveHttpClient
     {
         private string _embedUri = @"https://api.openai.com/v1/embeddings";
 
+        public async Task<EmbeddedMemory> GetEmbedding(string message)
+        {
+            var request = Embed(message);
+            var embedding = await Respond(request);
+            var embedded = new EmbeddedMemory(embedding, message);
+            return embedded;
+        }
         public async Task<EmbeddedMemory> GetEmbedding(IMessage message)
         {
             var request = Embed(message.Content);
@@ -25,8 +32,8 @@ namespace Realization.Skill
         {
             var testJson = JsonConvert.SerializeObject(new
             {
-                model = model,
-                input = input
+                model,
+                input
             });
             var request = new HttpRequestMessage
             {

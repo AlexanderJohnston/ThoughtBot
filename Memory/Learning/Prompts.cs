@@ -1,4 +1,4 @@
-﻿namespace Realization.Skill
+﻿namespace Memory.Learning
 {
     public static class Prompts
     {

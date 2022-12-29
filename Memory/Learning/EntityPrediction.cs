@@ -1,4 +1,4 @@
-﻿namespace Realization.Learning
+﻿namespace Memory.Learning
 {
     public class EntityPrediction
     {

@@ -1,4 +1,4 @@
-﻿namespace Realization.Intent
+﻿namespace Memory.Intent
 {
     class Teach
     {

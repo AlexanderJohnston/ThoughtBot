@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Realization.Skill
+namespace Memory
 {
     public class UsageModel
     {

@@ -4,17 +4,17 @@ using Azure.Core;
 using AzureLUIS;
 using Discord;
 using Newtonsoft.Json;
-using Realization.Intent;
-using Realization.Skill;
 using System.Text.Json;
 using ThotLibrary;
+using Memory;
+using Memory.Intent;
 
 namespace Realization
 {
     public class Cortex
     {
-        public string ProjectName = "thoughtbot";
-        public string DeploymentName = "production";
+        public string ProjectName = "Realize";
+        public string DeploymentName = "FirstRealization";
         public List<Intention> Intentions;
         private GetAClue _cognition;
 
@@ -82,7 +82,7 @@ data: {3}";
             var response = await responseEngine.PredictResponse(content);
             await message.Channel.SendMessageAsync(response);
             var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
-            //await ReadAzure(clue, message);
+            await ReadAzure(clue, message);
             await ReadEntities(message);
             return response;
         }
@@ -144,7 +144,7 @@ data: {3}";
                 if (!string.IsNullOrEmpty(entity.SubCategory))
                     await message.Channel.SendMessageAsync($"  SubCategory: {entity.SubCategory}");
                 await message.Channel.SendMessageAsync($"  Confidence score: {entity.ConfidenceScore}");
-                await message.Channel.SendMessageAsync(Environment.NewLine);
+                //await message.Channel.SendMessageAsync(Environment.NewLine);
             }
         }
 

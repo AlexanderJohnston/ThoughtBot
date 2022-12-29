@@ -1,21 +1,17 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Mime;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Web;
-using Realization.Intent;
 using ThotLibrary;
 using Discord;
+using Memory.Learning;
+using Newtonsoft.Json;
+using System.Net.Mime;
+using System.Text;
+using Serilog;
+using Memory.Intent;
 
-namespace Realization.Skill
+namespace Memory
 {
+    //Refactor Realization.Skill.ResponsePredictionEngine for the Memory namespace.
     public class ResponsePredictionEngine : CognitiveHttpClient
     {
         private string _authorTemplate = @"https://westus.api.cognitive.microsoft.com/luis/authoring/v3.0/apps/{0}/versions/{1}/";
@@ -33,20 +29,20 @@ namespace Realization.Skill
         {
             var templateForPrompt = Prompts.TopicShift;
             var prompt = string.Format(templateForPrompt, currentTopic, message);
-            return await PredictResponse(prompt, "text-ada-001");
+            return await PredictResponse(prompt, "text-davinci-001");
         }
 
         public async Task<string> LearnIntent(string message)
         {
             var templateForPrompt = Prompts.Intent;
             var prompt = string.Format(templateForPrompt, message);
-            return await PredictResponse(prompt, "text-ada-001");
+            return await PredictResponse(prompt, "text-davinci-001");
         }
 
-        public async Task<string> PredictResponse(string message, string model = "text-ada-001")
+        public async Task<string> PredictResponse(string message, string model = "text-davinci-003")
         {
             var uriBuilder = BuildRequestToOpenAi();
-            var request = OpenAIRequest(uriBuilder.Uri, 0.7f, 256, message, "text-ada-001");
+            var request = OpenAIRequest(uriBuilder.Uri, 0.7f, 256, message, "text-davinci-003");
             HttpResponseMessage response = await DefaultResponder(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -61,7 +57,7 @@ namespace Realization.Skill
             SetBearerToken("");
             return uriBuilder;
         }
-
+        
         private HttpRequestMessage OpenAIRequest(Uri uri, float temperature, int maxTokens, string message, string aiModel = "text-ada-002")
         {
             var testJson = JsonConvert.SerializeObject(new
@@ -140,11 +136,11 @@ namespace Realization.Skill
         public string finish_reason;
     }
 
-    public class Prediction 
+    public class Prediction
     {
         public string TopIntent;
         public Dictionary<string, Scores> Intents;
-        public Dictionary<string,string[]> Entities;
+        public Dictionary<string, string[]> Entities;
     }
 
     public class Scores

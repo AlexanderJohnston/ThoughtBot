@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Realization.Skill
+namespace Memory
 {
     public class EmbeddedData
     {
@@ -9,6 +9,6 @@ namespace Realization.Skill
         [JsonPropertyName("index")]
         public int Index { get; set; }
         [JsonPropertyName("embedding")]
-        public Double[] Embedding { get; set; }
+        public double[] Embedding { get; set; }
     }
 }

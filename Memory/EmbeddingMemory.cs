@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Realization.Skill
+namespace Memory
 {
     // Tracks embedded memories in memory and calls a file manager to persist them to disk.
     public class EmbeddingMemory
@@ -39,7 +39,7 @@ namespace Realization.Skill
         // Remove memories for a specific model
         public void RemoveMemories(string model)
         {
-            Memories.RemoveAll(memory => memory.Model == model);
+            Memories.RemoveAll(memory => memory.Embedding.Model == model);
         }
         // Saves all memories to disk.
         public void SaveMemories()

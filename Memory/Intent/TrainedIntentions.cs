@@ -1,7 +1,7 @@
-﻿using Realization.Learning;
+﻿using Memory.Learning;
 using ThotLibrary.Cognitive;
 
-namespace Realization.Intent
+namespace Memory.Intent
 {
     public class TrainedIntentions
     {

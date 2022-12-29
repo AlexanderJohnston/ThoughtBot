@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Realization.Skill
+namespace Memory
 {
     // Stores the GptEmbedding and the text used to embed it.
     public class EmbeddedMemory

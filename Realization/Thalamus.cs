@@ -4,13 +4,12 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Realization.Behavior;
-using Realization.Intent;
 using Realization.Skill;
 using System.Reflection;
 using System.Text;
 using ThotLibrary;
-using Totem.Runtime.Metrics;
+using Memory;
+using Memory.Intent;
 
 namespace Realization
 {
@@ -224,9 +223,12 @@ namespace Realization
             {
                 var json = JsonConvert.SerializeObject(_memory.AllMemories(message.Channel.Id));
                 var embed = await Cortex.EmbedMemory(message);
-                var saved = JsonConvert.SerializeObject(embed.Embedding.Data);
-                File.WriteAllText("test", saved);
-                Log.Debug(JsonConvert.SerializeObject(embed));
+                var memoryOnDisk = new DiskEmbedder("longTerm-Memory2.json");
+                //var pastMemory = memoryOnDisk.ReadMemories();
+                var pastMemory = new List<EmbeddedMemory>();
+                pastMemory.Add(embed);
+                memoryOnDisk.WriteMemories(pastMemory);
+                Log.Debug("Memory embedded. Model: {0} | Usage: {1}", embed.Embedding.Model, embed.Embedding.Usage);
             }
 
             // Pass the message to the conversation handler for the first pass of hard-coded responses.
