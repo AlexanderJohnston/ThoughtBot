@@ -28,10 +28,11 @@ namespace Realization
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private ServiceProvider _provider;
-        private string AllowedChannel = "auto-intelligence";
+        private string AllowedChannel = "bottest";
         private bool _sleeping = true;
         private bool _quiet = true;
         private bool _imagine = false;
+        private bool _tokenize = false;
         private List<Intention> _lastIntentions;
         private SocketUser _self;
         private GetAClue _cognition;
@@ -80,6 +81,24 @@ namespace Realization
                 }
                 return;
             }
+            // Tokenize the user's message and return to them the list of tokens using the Tokenizer from Memory
+            if (_tokenize)
+            {
+                var tokenizer = new Tokenizer();
+                var tokens = tokenizer.Tokenize(message.Content);
+                var output = new StringBuilder();
+                output.Append('[');
+                foreach (var token in tokens)
+                {
+                    output.Append(token.ToString() + ',');
+                }
+                // remove the last comma
+                output.Remove(output.Length - 1, 1);
+                output.Append(']');
+                await messageParam.Channel.SendMessageAsync(output.ToString());
+                _tokenize = false;
+                return;
+            }
             // Store a new prompt for usage in GPT-3 response prediction.
             if (_imagine)
             {
@@ -106,7 +125,7 @@ namespace Realization
             var currentTopic = RecallTopic(message);
             var topicShift = await DidTopicShift(messageParam, message, currentTopic);
             // Predict the intention of the user's message and then remember it.
-            Intention prediction = await PredicTintentWithGpt3(message, memId, currentTopic, topicShift);
+            Intention prediction = await PredictIntentWithGpt3(message, memId, currentTopic, topicShift);
             // Prepare a prompt for GPT-3 to predict a response to the user's message, then attempt it.
             await TryRespondWithGpt3(messageParam, message, currentTopic, prediction);
         }
@@ -119,7 +138,7 @@ namespace Realization
         /// <param name="currentTopic">the current topic as a string</param>
         /// <param name="topicShift">the topic we're shifting to as a string</param>
         /// <returns></returns>
-        private async Task<Intention> PredicTintentWithGpt3(SocketUserMessage? message, Guid memId, string currentTopic, string topicShift)
+        private async Task<Intention> PredictIntentWithGpt3(SocketUserMessage? message, Guid memId, string currentTopic, string topicShift)
         {
             var prediction = await PredictIntent(message, topicShift, currentTopic);
             await RememberOther(message, memId, currentTopic, prediction);
@@ -210,7 +229,12 @@ namespace Realization
                 WeavePrompt = WeavePromptBeforeResponse(message.Channel.Id)
             };
             var json = JsonConvert.SerializeObject(dynamicMemory);
+            var topic = conversation.Topic;
+            // Concatenate the list of contexts from the conversation.
+            var context = string.Join(";", conversation.Context);
             var embed = await Cortex.EmbedMemory(json, message);
+            embed.Topic = topic;
+            embed.Context = context;
             var memoryOnDisk = _disk;
             var pastMemory = memoryOnDisk.ReadMemories();
             pastMemory.Add(embed);
@@ -220,6 +244,12 @@ namespace Realization
 
         public async Task<bool> BasicCommands(SocketUserMessage message)
         {
+            // if message contains tokenize my next message and set the _tokenize flag to true
+            if (message.Content.Contains("tokenize my next message"))
+            {
+                _tokenize = true;
+                return true;
+            }
             if (message.Content.Contains("Realize new prompt"))
             {
                 _imagine = true;

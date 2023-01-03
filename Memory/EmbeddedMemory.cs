@@ -1,10 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Memory
 {
     // Stores the GptEmbedding and the text used to embed it.
     public class EmbeddedMemory
     {
+        public string Topic { get; set; }
+        public string Context { get; set; }
         public string Text { get; set; }
         public GptEmbedding Embedding { get; set; }
         public EmbeddedMemory(GptEmbedding embedding, string text)
@@ -15,13 +17,13 @@ namespace Memory
     }
     public class GptEmbedding
     {
-        [JsonPropertyName("object")]
+        [JsonProperty("object")]
         public string Object { get; set; }
-        [JsonPropertyName("data")]
+        [JsonProperty("data")]
         public EmbeddedData[] Data { get; set; }
-        [JsonPropertyName("model")]
+        [JsonProperty("model")]
         public string Model { get; set; } = "text-embedding-ada-002-v2";
-        [JsonPropertyName("usage")]
+        [JsonProperty("usage")]
         public UsageModel Usage { get; set; }
     }
 }

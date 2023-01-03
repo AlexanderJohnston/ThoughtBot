@@ -33,7 +33,7 @@ namespace Memory
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
-            //_client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "");
+            //_client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "19b4bb7d2b5348919647946c54b7ba00");
         }
 
         public UriBuilder CognitiveServicesUri(string message)
@@ -41,7 +41,7 @@ namespace Memory
             var uriTemplate = BuildUriTemplate("bb7e751e-9ab5-49a4-abc5-1dc36709b56f", "staging");
             var builder = new UriBuilder(uriTemplate);
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["subscription-key"] = "";
+            query["subscription-key"] = "fee758b0a7fe4eb9b7ca9adca180f4ae";
             query["verbose"] = "false";
             query["log"] = "false";
             query["show-all-intents"] = "true";

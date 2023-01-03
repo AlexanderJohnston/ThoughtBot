@@ -1,12 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Memory
 {
     public class UsageModel
     {
-        [JsonPropertyName("prompt_tokens")]
+        [JsonProperty("prompt_tokens")]
         public int PromptTokens;
-        [JsonPropertyName("total_tokens")]
+        [JsonProperty("total_tokens")]
         public int TotalTokens;
     }
 }

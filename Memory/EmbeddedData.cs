@@ -1,14 +1,14 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Memory
 {
     public class EmbeddedData
     {
-        [JsonPropertyName("object")]
+        [JsonProperty("object")]
         public string Object { get; set; }
-        [JsonPropertyName("index")]
+        [JsonProperty("index")]
         public int Index { get; set; }
-        [JsonPropertyName("embedding")]
+        [JsonProperty("embedding")]
         public double[] Embedding { get; set; }
     }
 }

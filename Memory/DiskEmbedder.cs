@@ -1,9 +1,9 @@
-﻿using Serilog.Events;
+﻿using Newtonsoft.Json;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Memory
@@ -28,18 +28,18 @@ namespace Memory
                 string path = Path;
                 try
                 {
-                    File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(memories));
+                    File.WriteAllText(path, JsonConvert.SerializeObject(memories));
                 }
                 catch (System.IO.IOException)
                 {
                     path = Path + new Random().Next(0,999999);
-                    File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(memories));
+                    File.WriteAllText(path, JsonConvert.SerializeObject(memories));
                 }
                 catch (Exception ex) { throw ex;  }
             }
             else
             {
-                File.WriteAllText(Path, System.Text.Json.JsonSerializer.Serialize(memories));
+                File.WriteAllText(Path, JsonConvert.SerializeObject(memories));
             }
         }
         // Check if file already exists at path and that it is not empty.
@@ -49,7 +49,7 @@ namespace Memory
         {
             if (File.Exists(Path) && new FileInfo(Path).Length > 0)
             {
-                return System.Text.Json.JsonSerializer.Deserialize<List<EmbeddedMemory>>(File.ReadAllText(Path));
+                return JsonConvert.DeserializeObject<List<EmbeddedMemory>>(File.ReadAllText(Path));
             }
             else
             {
