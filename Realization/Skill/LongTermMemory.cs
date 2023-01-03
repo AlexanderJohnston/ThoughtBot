@@ -1,6 +1,6 @@
 ﻿namespace Realization.Skill
 {
-    internal class LongTermMemory
+    public class LongTermMemory
     {
     }
 }

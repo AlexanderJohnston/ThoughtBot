@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog.Events;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,9 +12,9 @@ namespace Memory
     public class DiskEmbedder
     {
         public string Path { get; set; }
-        public DiskEmbedder(string path)
+        public DiskEmbedder(string template)
         {
-            Path = path;
+            Path = string.Format(template, Guid.NewGuid());
         }
 
         // Check if file already exists at path.

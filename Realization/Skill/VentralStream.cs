@@ -1,4 +1,5 @@
-﻿using Realization.Converse;
+﻿using Memory.Conversation;
+using Realization.Converse;
 
 namespace Realization.Skill
 {
@@ -11,7 +12,7 @@ namespace Realization.Skill
         public void Listen(AuditorySignal signal)
         {
             var conversation = RecognizeConversation(signal);
-            conversation.Memories.Add(new Message() { Id = signal.MemoryId, Author = signal.Source });
+            conversation.Update(signal);
             UpdateTopic(signal.Source, signal.Topic);
         }
         private void UpdateTopic(ulong personId, string topic)
@@ -47,18 +48,13 @@ namespace Realization.Skill
             {
                 var person = new Person { Id = signal.Source };
                 var people = new People(new() { person });
-                var convo = new Conversation()
-                {
-                    Topic = signal.Topic,
-                    Author = signal.Source,
-                    Context = new List<string>() { signal.Context }
-                };
+                var convo = new Conversation(signal);
                 Dialogue.Add(people, convo);
-                TopicLookup.Add(person, signal.Topic);
+                //TopicLookup.Add(person, signal.Topic);
                 return convo;
             }
         }
-        private Conversation Conversation(KeyValuePair<People, Conversation> selected) => selected.Value;
+        public Conversation Conversation(KeyValuePair<People, Conversation> selected) => selected.Value;
         private bool ConversationExists(AuditorySignal signal) =>
             Dialogue.Any(dialogue => Conversation(dialogue).Topic == signal.Topic);
         //private bool ContextExists(AuditorySignal signal) =>
@@ -72,42 +68,5 @@ namespace Realization.Skill
         {
             Dialogue = dialogue;
         }
-    }
-
-    public class People
-    {
-        public List<Person> Group = new();
-        public People(List<Person> group)
-        {
-            Group = group;
-        }
-        public void Add(Person person)
-        {
-            Group.Add(person);
-        }
-        public void Remove(Person person)
-        {
-            Group.Remove(person);
-        }
-    }
-
-    public class Person
-    {
-        public string Name { get; set; }
-        public ulong Id { get; set; }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is Person person &&
-                   Id == person.Id;
-        }
-    }
-
-    public class AuditorySignal
-    {
-        public ulong Source { get; set; }
-        public Guid MemoryId { get; set; }
-        public string Context { get; set; }
-        public string Topic { get; set; }
     }
 }

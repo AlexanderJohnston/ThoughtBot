@@ -8,6 +8,7 @@ using System.Text.Json;
 using ThotLibrary;
 using Memory;
 using Memory.Intent;
+using Discord.WebSocket;
 
 namespace Realization
 {
@@ -24,7 +25,7 @@ namespace Realization
             _cognition = cognition;
         }
 
-        public async Task<EmbeddedMemory> EmbedMemory(IMessage message)
+        public async Task<EmbeddedMemory> EmbedMemory(string message, SocketMessage messageParam)
         {
             var embedEngine = new EmbeddingEngine();
             var embed = await embedEngine.GetEmbedding(message);
@@ -37,7 +38,7 @@ usage: {1},
 object: {2},
 data: {3}";
             var output = string.Format(template, model, usage, obj, data);
-            await message.Channel.SendMessageAsync(output);
+            await messageParam.Channel.SendMessageAsync(output);
             return embed;
         }
 
@@ -81,9 +82,9 @@ data: {3}";
             var responseEngine = new ResponsePredictionEngine(Intentions);
             var response = await responseEngine.PredictResponse(content);
             await message.Channel.SendMessageAsync(response);
-            var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
-            await ReadAzure(clue, message);
-            await ReadEntities(message);
+            //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
+            //await ReadAzure(clue, message);
+            //await ReadEntities(message);
             return response;
         }
 
