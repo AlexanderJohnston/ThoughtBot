@@ -1,5 +1,4 @@
-﻿using Memory.Conversation;
-using Realization.Converse;
+﻿using Memory.Converse;
 
 namespace Realization.Skill
 {
@@ -28,7 +27,7 @@ namespace Realization.Skill
                 TopicLookup.Add(new() { Id = personId }, topic);
             }
         }
-        private Conversation RecognizeConversation(AuditorySignal signal)
+        public Conversation RecognizeConversation(AuditorySignal signal)
         {
             //if (TopicExists(signal.Source))
             //{
@@ -60,6 +59,7 @@ namespace Realization.Skill
         //private bool ContextExists(AuditorySignal signal) =>
         //    Dialogue.Any(dialogue => dialogue.)
 
+        public Conversation GetConversation(string topic) => Dialogue.First(dialogue => Conversation(dialogue).Topic == topic).Value;
         public string GetTopic(ulong person) => TopicLookup.First(topic => topic.Key.Id == person).Value;
         public bool TopicExists(ulong person) => TopicLookup.Any(topic => topic.Key.Id == person);
 

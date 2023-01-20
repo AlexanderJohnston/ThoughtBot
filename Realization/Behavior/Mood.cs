@@ -1,4 +1,4 @@
-﻿namespace Realization.Converse
+﻿namespace Realization.Behavior
 {
 
     internal static class Personalities
@@ -9,11 +9,11 @@
             Description = "Reliable configuration the bot is designed to work best in.",
             Traits = new() {
                 new() { Name = "Sleeping", Resistance = 1.0f },
-                new() { Name = "Awake", Resistance = 1.0f },
-                new() { Name = "Listening", Resistance = 1.0f },
-                new() { Name = "Learning", Resistance = 1.0f },
-                new() { Name = "Responding", Resistance = 1.0f },
-                new() { Name = "Reflecting", Resistance = 1.0f }
+                new() { Name = "Awake", Resistance = 0.1f },
+                new() { Name = "Listening", Resistance = 0.2f },
+                new() { Name = "Learning", Resistance = 0.3f },
+                new() { Name = "Responding", Resistance = 0.5f },
+                new() { Name = "Reflecting", Resistance = 0.6f }
             }
         };
         public static Personality Eager() => new()

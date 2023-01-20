@@ -1,4 +1,6 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
+using Memory.Converse;
 using Realization.Skill;
 
 namespace Realization
@@ -22,9 +24,10 @@ namespace Realization
                 return true;
             }
             // Skip system messages
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return true;
-            else return false;
+            if (messageParam is IUserMessage)
+                return false;
+            else
+                return true;
         }
 
         public bool FamiliarConversation(SocketUserMessage message)

@@ -1,4 +1,4 @@
-﻿using Realization.Converse;
+﻿using Memory.Converse;
 using Realization.Skill;
 
 namespace Realization

@@ -9,6 +9,7 @@ using ThotLibrary;
 using Memory;
 using Memory.Intent;
 using Discord.WebSocket;
+using Memory.Converse;
 
 namespace Realization
 {
@@ -18,17 +19,19 @@ namespace Realization
         public string DeploymentName = "FirstRealization";
         public List<Intention> Intentions;
         private GetAClue _cognition;
+        private string _openAIToken;
 
-        public Cortex(List<Intention> intentions, GetAClue cognition)
+        public Cortex(List<Intention> intentions, GetAClue cognition, string token)
         {
+            _openAIToken = token;
             Intentions = intentions;
             _cognition = cognition;
         }
 
-        public async Task<EmbeddedMemory> EmbedMemory(string message, SocketMessage messageParam)
+        public async Task<EmbeddedMemory> EmbedMemory(Conversation conversation, SocketMessage messageParam, string topic, string context)
         {
             var embedEngine = new EmbeddingEngine();
-            var embed = await embedEngine.GetEmbedding(message);
+            var embed = await embedEngine.GetEmbedding(conversation, topic, context);
             var model = JsonConvert.SerializeObject(embed.Embedding.Model);
             var usage = JsonConvert.SerializeObject(embed.Embedding.Usage);
             var obj = JsonConvert.SerializeObject(embed.Embedding.Object);
@@ -42,44 +45,45 @@ data: {3}";
             return embed;
         }
 
-        public async Task<PredictedIntent> PredictIntention(IMessage message)
-        {
-            var responseEngine = new ResponsePredictionEngine(Intentions);
-            var intent = await responseEngine.PredictAsync(message.Content);
-            var formulatedJson = JsonConvert.SerializeObject(intent);
-            if (intent.Predicted.Name == "None")
-            {
-                return new PredictedIntent(new None(), formulatedJson);
-            }
-            return new PredictedIntent(intent.Predicted, formulatedJson);
-        }
 
-        public async Task<string> PredictTopicShift(IMessage message, string currentTopic, string customMessage = "")
+        /// <summary>
+        /// The PredictTopicShift method is a method of the Cortex object. It appears to be using a prediction system, represented 
+        /// by the ResponsePredictionEngine object, to determine if the topic of a conversation has shifted. 
+        /// The ResponsePredictionEngine object is initialized with a list of intentions, represented by the Intentions field.
+        /// </summary>
+        /// <param name="message">an object representing the message being analyzed</param>
+        /// <param name="currentTopic">a string representing the current topic of the conversation</param>
+        /// <param name="customMessage">a string containing a custom message to be used in place </param>
+        /// <returns><see cref="TopicShiftAnswer"/>an object that contains a boolean value indicating whether the topic has shifted and a string value representing the new topic</returns>
+        public async Task<TopicShiftAnswer> PredictTopicShift(IMessage message, string currentTopic, string customMessage = "")
         {
             if (customMessage == string.Empty)
             {
-                var responseEngine = new ResponsePredictionEngine(Intentions);
-                var response = await responseEngine.PredictTopicShift(message.Content, currentTopic);
+                var responseEngine = new ResponsePredictionEngine(_openAIToken);
+                //var response = await responseEngine.PredictTopicShift(message.Content, currentTopic);
+                var response = await responseEngine.PredictComplexShift(message.Content, currentTopic);
+
                 return response;
             }
             else
             {
-                var responseEngine = new ResponsePredictionEngine(Intentions);
-                var response = await responseEngine.PredictTopicShift(customMessage, currentTopic);
+                var responseEngine = new ResponsePredictionEngine(_openAIToken);
+                //var response = await responseEngine.PredictTopicShift(customMessage, currentTopic);
+                var response = await responseEngine.PredictComplexShift(customMessage, currentTopic);
                 return response;
             }
         }
 
         public async Task<string> PredictGptIntent(IMessage message)
         {
-            var responseEngine = new ResponsePredictionEngine(Intentions);
+            var responseEngine = new ResponsePredictionEngine(_openAIToken);
             var response = await responseEngine.LearnIntent(message.Content);
             return response;
         }
 
         public async Task<string> PredictResponse(IMessage message, string content)
         {
-            var responseEngine = new ResponsePredictionEngine(Intentions);
+            var responseEngine = new ResponsePredictionEngine(_openAIToken);
             var response = await responseEngine.PredictResponse(content);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));

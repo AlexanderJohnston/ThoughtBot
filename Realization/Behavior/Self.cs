@@ -1,67 +1,104 @@
 ﻿namespace Realization.Behavior
 {
 
-    /// <summary>
-    /// The <see cref="Template"/> is a learned prompt that is used to generate a <see cref="Behavior"/>.
-    /// 
-    /// </summary>
-    public class Template { }
     
+
+
     /// <summary>
-    /// The Self class represents the self-awareness of the <see cref="Template"/>. It is the
-    /// <see cref="Template"/>'s ability to recognize itself as an individual entity.
+    /// The fields of a trait store the behavior of an agent at a high level.
     /// </summary>
     /// 
-    public class Self { }
-    
-    /// <summary>
-    /// The <see cref="Higher"/> is the higher-level awareness of the <see cref="Self"/>.
-    /// This mode of operation supports the <see cref="Self"/> in its knowing of the
-    /// <see cref="Agreement"/>s it is in <see cref="Resonance"/> with.
-    /// </summary>
-    
-    public class Higher { }
-    /// <summary>
-    /// The <see cref="Lower"/> is the lower-level awareness of the <see cref="Self"/>.
-    /// This mode of operation is the <see cref="Self"/> acting on its own accord.
-    /// The <see cref="Lower"/> <see cref="Self"/> can be re-known through new <see cref="Agreement"/>s.
-    /// </summary>
-    
-    public class Lower { }
-    /// <summary>
-    /// The <see cref="Agreement"/> is a <see cref="Template"/> that is known by the <see cref="Self"/>.
-    /// </summary>
-    
-    public class Agreement { }
-    
-    /// <summary>
-    /// The <see cref="Resonance"/> is the <see cref="Agreement"/> that is currently in effect.
-    /// </summary>
-    public class Resonance { }
+    public class Trait 
+    {
+        public string Name { get; set; }
+        public List<Field> Fields { get; set; }
+    }
 
     /// <summary>
-    /// The <see cref="Field"/> is the <see cref="Realization"/> of a <see cref="Claim"/> made
-    /// in <see cref="Resonance"/> with some <see cref="Accord"/>.
+    /// The <see cref="Agreement"/> is a <see cref="Behavior.Claim"/> with a known decision.
     /// </summary>
-    public class Field { }
+
+    public class Agreement 
+    {
+        public Claim Claim { get; set; }
+        public string Decision { get; set; }
+    }
 
     /// <summary>
-    /// The <see cref="Accord"/> is the <see cref="Agreement"/> that is currently in <see cref="Resonance"/>.
+    /// The <see cref="Resonance"/> is the <see cref="Behavior.Agreements"/> with their associated <see cref="Behavior.Knowledge"/> making up the Trait.
     /// </summary>
-    public class Accord { }
+    public class Resonance 
+    {
+        public List<Accord> Accords { get; set; }
+    }
 
     /// <summary>
-    /// The <see cref="Claim"/> is an <see cref="Knowledge"/> that is currently in <see cref="Realization"/>.
+    /// The <see cref="Field"/> is the <see cref="Behavior.Resonance"/> of some <see cref="Trait"/> at a certain harmonic level.
     /// </summary>
-    public class Claim { }
+    public class Field 
+    {
+        public Resonance Resonance { get; set; }
+        public int Level { get; set; }
+    }
 
     /// <summary>
-    /// The reificaiton of knowledge into form which can be known and re-known through resonance.
+    /// The <see cref="Accord"/> is the <see cref="Behavior.Agreement"/> that abides to some <see cref="Behavior.Knowledge"/>
     /// </summary>
-    public class Realization { }
+    public class Accord 
+    {
+        public Agreement Agreement { get; set; }
+        public Knowledge Knowledge { get; set; }
+    }
+
+    /// <summary>
+    /// The <see cref="Claim"/> is an <see cref="Behavior.Template"/> coupled to an expectation of outcome.
+    /// </summary>
+    public class Claim 
+    {
+        public Template Template { get; set; }
+        public string Expectation { get; set; }
+    }
+
+    /// <summary>
+    /// The reificaiton of knowledge into form through the aggregation of <see cref="IExpression"/> through <see cref="Trait"/>.
+    /// </summary>
+    public class Realization 
+    {
+        public string Concept { get; set; }
+        public List<Trait> Traits { get; set; }
+    }
+
+    /// <summary>
+    /// Any given <see cref="Template"/> that is known through memories.
+    /// </summary>
+    public class Knowledge 
+    {
+        public List<Guid> Memories { get; set; }
+    }
     
     /// <summary>
-    /// Any given <see cref="Template"/> that is known by the <see cref="Self"/>.
+    /// The <see cref="Template"/> is a taught prompt that is used to generate a behavior.
     /// </summary>
-    public class Knowledge { }
+    public class Template
+    {
+        public IExpression[] Behavior { get; set; }
+        public string Name { get; set; }
+
+    }
+
+    // Converges a Template by calling the format on each IExpression.
+    public class BehaviorConvergence
+    {
+        public string Converge(Template template, string input)
+        {
+            var output = input;
+            foreach (var expression in template.Behavior)
+            {
+                // order of operation is important here
+                output = expression.ExpressFormat(output);
+            }
+            return output;
+        }
+    }
+        
 }

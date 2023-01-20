@@ -1,4 +1,4 @@
-﻿namespace Realization.Skill
+﻿namespace Memory.Converse
 {
     public class Channel
     {

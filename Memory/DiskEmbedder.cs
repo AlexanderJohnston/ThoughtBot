@@ -14,7 +14,7 @@ namespace Memory
         public string Path { get; set; }
         public DiskEmbedder(string template)
         {
-            Path = string.Format(template, Guid.NewGuid());
+            Path = string.Format(template, Guid.Parse("dfb57541-a031-426f-b263-3138d030170f"));
         }
 
         // Check if file already exists at path.

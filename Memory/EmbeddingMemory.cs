@@ -11,10 +11,10 @@ namespace Memory
     {
         public List<EmbeddedMemory> Memories { get; set; }
         public DiskEmbedder DiskEmbedder { get; set; }
-        public EmbeddingMemory()
+        public EmbeddingMemory(string path)
         {
             Memories = new List<EmbeddedMemory>();
-            DiskEmbedder = new DiskEmbedder("memories.json");
+            DiskEmbedder = new DiskEmbedder(path);
         }
         // Add a new memory to the list of memories.
         public void AddMemory(EmbeddedMemory memory)
@@ -34,7 +34,7 @@ namespace Memory
         // Remove all memories.
         public void RemoveMemories(List<EmbeddedMemory> memories)
         {
-            Memories.RemoveAll(memories.Contains);
+            Memories = new();
         }
         // Remove memories for a specific model
         public void RemoveMemories(string model)

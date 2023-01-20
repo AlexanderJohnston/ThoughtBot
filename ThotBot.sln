@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Realization", "Realization\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Memory", "Memory\Memory.csproj", "{02A8B32F-7418-4367-8B11-26315D9AB718}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureLUIS", "AzureLUIS\AzureLUIS.csproj", "{3D66B834-4552-4F30-AFF6-40ED05EC72AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureLUIS", "AzureLUIS\AzureLUIS.csproj", "{3D66B834-4552-4F30-AFF6-40ED05EC72AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanity", "Sanity\Sanity.csproj", "{AFA3482E-CA14-4DE1-B87B-1239BA575EED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{3D66B834-4552-4F30-AFF6-40ED05EC72AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D66B834-4552-4F30-AFF6-40ED05EC72AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D66B834-4552-4F30-AFF6-40ED05EC72AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFA3482E-CA14-4DE1-B87B-1239BA575EED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFA3482E-CA14-4DE1-B87B-1239BA575EED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFA3482E-CA14-4DE1-B87B-1239BA575EED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFA3482E-CA14-4DE1-B87B-1239BA575EED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

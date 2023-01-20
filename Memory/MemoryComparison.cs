@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Memory.Converse;
+using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,12 +17,15 @@ namespace Memory
     /// </summary>
     public class MemoryComparison
     {
+        const int MAX_SECTION_LEN = 1000;
+        const string SEPARATOR = "\n* ";
+        const string SECTION = "\n### Memory Section\n";
         private Tokenizer _tokenizer = new();
-        private Memories _memories { get; set; }
         private EmbeddingEngine _engine { get; set; }
-        public MemoryComparison(Memories memories)
+        private DiskEmbedder _disk { get; set; }
+        public MemoryComparison(DiskEmbedder disk)
         {
-            _memories = memories;
+            _disk = disk;
             _engine = new EmbeddingEngine();
         }
         public static double VectorSimilarity(double[] x, double[] y)
@@ -30,57 +36,103 @@ namespace Memory
         // Order sections by similarity and then return as a list of tuples.
         public async Task<List<(double, (string, string))>> OrderMemorySectionsByQuerySimilarity(string query, Dictionary<(string, string), double[]> contexts)
         {
-            var queryEmbedding = await _engine.GetEmbedding(query);
+            var queryEmbedding = await _engine.EmbedQuery(query);
             var vectorArray = queryEmbedding.Embedding.Data.Select(data => data.Embedding).First();
-            
             var memorySimilarities = contexts.Select(x => (VectorSimilarity(vectorArray, x.Value), x.Key)).OrderByDescending(x => x.Item1).ToList();
-
             return memorySimilarities;
         }
+
+        ///<summary>
+        ///Parse the conversation into a list of memory text separated by <see cref="SEPARATOR">.
+        ///</summary> 
+        private string ParseMemoryFromConversation(Conversation conversation)
+        {
+            var memories = conversation.Memories.Select(mem => mem);
+            // Concatenate Author: to memories text
+            var authorMemories = memories.Select(mem => $"{mem.Author}: {mem.Text}");
+            var concat = string.Join(SEPARATOR, authorMemories);
+            return concat;
+        }
+
         public async Task<string> ConstructPrompt(string question, List<EmbeddedMemory> memories)
         {
-            const int MAX_SECTION_LEN = 500;
-            const string SEPARATOR = "\n* ";
+            // Tokenize the separator and set maximum prompt length
             int separatorLen = _tokenizer.Tokenize(SEPARATOR).Count();
-            
+
+            // Prepare the past embedded memories for similarity comparison.
+            Dictionary<(string, string), double[]> contextEmbeddings = GetContextualMemory(memories);
+
+            // Find the most relevant memories to the question based on the past embedded contexts.
+            var mostRelevantDocumentSections = await OrderMemorySectionsByQuerySimilarity(question, contextEmbeddings);
+
+            // Construct the prompt by concatenating the most relevant memories.
+            List<string> chosenSections, chosenSectionsIndexes;
+            WeaveMemories(memories, separatorLen, mostRelevantDocumentSections, out chosenSections, out chosenSectionsIndexes);
+
+            // Useful diagnostic information
+            Diagnostics(chosenSections, chosenSectionsIndexes);
+
+            // Header for the final prompt.
+            const string header = @"Answer the question as truthfully as possible using the provided context, and if the answer is not contained within the text below, say ""I don't know.""
+
+###Context 
+";
+            // Join all sections and prompt parts.
+            return header + string.Join("", chosenSections) + "\n\n Q: " + question + "\n A:";
+        }
+
+        private static void Diagnostics(List<string> chosenSections, List<string> chosenSectionsIndexes)
+        {
+            Log.Verbose($"Selected {chosenSections.Count} document sections:");
+            Log.Verbose(string.Join("\n", chosenSectionsIndexes));
+        }
+
+        private List<string> WeaveMemories(List<EmbeddedMemory> memories, int separatorLen, List<(double, (string, string))> mostRelevantDocumentSections, out List<string> chosenSections, out List<string> chosenSectionsIndexes)
+        {
+            chosenSections = new List<string>();
+            var chosenSectionsLen = 0;
+            chosenSectionsIndexes = new List<string>();
+            foreach (var key in mostRelevantDocumentSections)
+            {
+                // Add contexts until we run out of space.
+                // Make sure documentSection exists in memories with Any
+                var documentSectionExists = memories.Any(x => x.Topic == key.Item2.Item1 && x.Context == key.Item2.Item2);
+                if (documentSectionExists)
+                {
+                    var documentSection = memories.First(x => x.Topic == key.Item2.Item1 && x.Context == key.Item2.Item2);
+                    var conversation = documentSection.Conversation.Memories.Select(memory => $"{memory.Author}: {memory.Text}").ToList();
+                    var tokens = _tokenizer.Tokenize(string.Join(SEPARATOR, conversation));
+                    chosenSectionsLen += tokens.Count() + separatorLen;
+                    if (chosenSectionsLen > MAX_SECTION_LEN)
+                    {
+                        break;
+                    }
+                    var sections = documentSection.Conversation.Memories.Select(memory => memory.Text).ToList();
+                    var concat = string.Join(SEPARATOR, sections);
+                    //var section = SECTION + concat; // TODO Save idea for later when you feel like doing the token math.
+                    chosenSections.Add(concat);
+                    chosenSectionsIndexes.Add($"Topic: {documentSection.Topic}, Context: {documentSection.Context}, Section: {concat}");
+                }
+            }
+            return chosenSections;
+        }
+
+        /// <summary>
+        /// Converts embedded memories into the format that the dot product similarity function 
+        /// <see cref="VectorSimilarity(double[], double[])"/> expects.
+        /// </summary>
+        /// <param name="memories">A list of previously embedded memories.</param>
+        /// <returns></returns>
+        private static Dictionary<(string, string), double[]> GetContextualMemory(List<EmbeddedMemory> memories)
+        {
+            // Populate the dictionary with the EmbeddedMemory list using the Topic and Context for the tuple key, and use the first GptEmbedding.Data.Embedding array for the value.
             var contextEmbeddings = new Dictionary<(string, string), double[]>();
-            //Populate the dictionary with the EmbeddedMemory list using the Topic and Context for the tuple key, and use the first GptEmbedding.Data.Embedding array for the value.
             foreach (var memory in memories)
             {
                 contextEmbeddings.Add((memory.Topic, memory.Context), memory.Embedding.Data.Select(data => data.Embedding).First());
             }
 
-            var mostRelevantDocumentSections = await OrderMemorySectionsByQuerySimilarity(question, contextEmbeddings);
-
-            var chosenSections = new List<string>();
-            var chosenSectionsLen = 0;
-            var chosenSectionsIndexes = new List<string>();
-
-            foreach (var key in mostRelevantDocumentSections)
-            {
-                // Add contexts until we run out of space.        
-                var documentSection = memories.First(x => x.Topic == key.Item2.Item1 && x.Context == key.Item2.Item2).Context;
-                var tokens = _tokenizer.Tokenize(documentSection);
-                chosenSectionsLen += tokens.Count() + separatorLen;
-                if (chosenSectionsLen > MAX_SECTION_LEN)
-                {
-                    break;
-                }
-
-                chosenSections.Add(SEPARATOR + documentSection.Content.Replace("\n", " "));
-                chosenSectionsIndexes.Add(sectionIndex.ToString());
-            }
-
-            // Useful diagnostic information
-            Console.WriteLine($"Selected {chosenSections.Count} document sections:");
-            Console.WriteLine(string.Join("\n", chosenSectionsIndexes));
-
-            const string header = @"Answer the question as truthfully as possible using the provided context, and if the answer is not contained within the text below, say ""I don't know.""
-
-Context:
-";
-
-            return header + string.Join("", chosenSections) + "\n\n Q: " + question + "\n A:";
+            return contextEmbeddings;
         }
     }
 }

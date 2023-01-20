@@ -11,6 +11,44 @@ using Memory.Intent;
 
 namespace Memory
 {
+    //Class representing the answer for a topic shift. The answer is a single string that needs to be broken up into three parts broken up by \n delimeters.
+    //The first line is Decision: Yes or Decision: No
+    //The second line is Topic: <topic>
+    //The third line is Reasoning: <reasoning>
+    public class TopicShiftAnswer
+    {
+        public string Decision { get; set; }
+        public string Topic { get; set; }
+        public string Reasoning { get; set; }
+        public TopicShiftAnswer(string answer)
+        {
+            // Split the answer into three parts.
+            var lines = answer.Split('\n');
+            // These three parts might not be formatted correctly, if any of them are not then we will store the entire answer instead.
+            // Otherwise, we will trim the formatting from the answer.
+            // Check that all three lines exist and then test each one to see if it is formatted correctly.
+            if (lines.Length == 3 && lines[0].StartsWith("Decision: ") && lines[1].StartsWith("Topic: ") && lines[2].StartsWith("Reasoning: "))
+            {
+                Decision = lines[0].Substring(10);
+                Topic = lines[1].Substring(7);
+                Reasoning = lines[2].Substring(10);
+            }
+            // If all three lines still exist, we can store all of them directly.
+            else if(lines.Length == 3)
+            {
+                Decision = lines[0];
+                Topic = lines[1];
+                Reasoning = lines[2];
+            }
+            // Set the Decision to No and the other fields to empty.
+            else
+            {
+                Decision = "No";
+                Topic = string.Empty;
+                Reasoning = string.Empty;
+            }
+        }
+    }
     //Refactor Realization.Skill.ResponsePredictionEngine for the Memory namespace.
     public class ResponsePredictionEngine : CognitiveHttpClient
     {
@@ -18,31 +56,43 @@ namespace Memory
         private readonly string _cognitiveUriTemplate = @"https://realize.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-10-01-preview";
         private readonly string _openUriTemplate = @"https://api.openai.com/v1/completions";
 
-        public List<Intention> Intentions = new List<Intention>();
+        public string _token;
 
-        public ResponsePredictionEngine(List<Intention> intentions)
+        public ResponsePredictionEngine(string token)
         {
-            Intentions = intentions;
+            _token = token;
         }
 
-        public async Task<string> PredictTopicShift(string message, string currentTopic)
+        /// <summary>
+        /// a method that predicts whether the topic of a conversation has shifted based on a message and the current topic.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="currentTopic"></param>
+        /// <returns><see cref="TopicShiftAnswer"/> an object that contains a boolean value indicating whether the topic has shifted and a string value representing the new topic</returns>
+        public async Task<TopicShiftAnswer> PredictComplexShift(string message, string currentTopic)
+        {
+            var response = await PredictTopicShift(message, currentTopic, 0.2f, 1000);
+            return new TopicShiftAnswer(response);
+        }
+
+        public async Task<string> PredictTopicShift(string message, string currentTopic, float temperature = 0.6f, int tokens = 512)
         {
             var templateForPrompt = Prompts.TopicShift;
             var prompt = string.Format(templateForPrompt, currentTopic, message);
-            return await PredictResponse(prompt, "text-davinci-001");
+            return await PredictResponse(prompt, "text-davinci-003", temperature, tokens);
         }
 
         public async Task<string> LearnIntent(string message)
         {
             var templateForPrompt = Prompts.Intent;
             var prompt = string.Format(templateForPrompt, message);
-            return await PredictResponse(prompt, "text-davinci-001");
+            return await PredictResponse(prompt, "text-ada-001");
         }
 
-        public async Task<string> PredictResponse(string message, string model = "text-davinci-003")
+        public async Task<string> PredictResponse(string message, string model = "text-davinci-003", float temperature = 0.6f, int tokens = 512)
         {
             var uriBuilder = BuildRequestToOpenAi();
-            var request = OpenAIRequest(uriBuilder.Uri, 0.7f, 256, message, "text-davinci-003");
+            var request = OpenAIRequest(uriBuilder.Uri, temperature, tokens, message, model);
             HttpResponseMessage response = await DefaultResponder(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -53,8 +103,7 @@ namespace Memory
         private UriBuilder BuildRequestToOpenAi()
         {
             var uriBuilder = new UriBuilder(_openUriTemplate);
-            // TODO cleanse tokens from source
-            SetBearerToken("");
+            SetBearerToken(_token);
             return uriBuilder;
         }
         
@@ -74,28 +123,6 @@ namespace Memory
                 Content = new StringContent(testJson, Encoding.UTF8, MediaTypeNames.Application.Json /* or "application/json" in older versions */),
             };
             return request;
-        }
-
-        public async Task<FormulatedIntent> PredictAsync(string message)
-        {
-            var uriBuilder = CognitiveServicesUri(message);
-
-            // Make the prediction and get the response.
-            string predictionJson = await DefaultGet(uriBuilder);
-            var response = JsonConvert.DeserializeObject<PredictionResponse>(predictionJson);
-
-            // Unpack the top intention from the prediction.
-            string intention = response.Prediction.TopIntent;
-            var topPrediction = response.Prediction.Intents[intention];
-            float score = topPrediction.Score;
-            var entities = response.Prediction.Entities.ToList();
-            Log.Verbose(string.Format("Predicted Intent: [ {0} ] Score: [ {1} ] Entities: [ {2} ]", intention, score, ""));
-
-            // Return the intent if it was above the 65% confidence threshold.
-            if (Intentions.Any(intent => intent.Name == intention) && score > 0.1F)
-                return new FormulatedIntent() { Predicted = Intentions.First(intent => intent.Name == intention), Entities = entities };
-            else
-                return new FormulatedIntent() { Predicted = new None() };
         }
     }
 
