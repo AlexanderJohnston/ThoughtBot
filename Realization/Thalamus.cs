@@ -18,6 +18,7 @@ using Memory.Converse;
 using static Totem.Timeline.FlowCall;
 using System;
 using Totem;
+using Serilog.Events;
 
 namespace Realization
 {
@@ -75,21 +76,23 @@ namespace Realization
         {
             // Check if the message is from a user, otherwise disregard it.
             SocketUserMessage message;
+            ITextChannel channel;
             if (messageParam is SocketUserMessage)
             {
-                message = (SocketUserMessage)messageParam;
+                message = messageParam as SocketUserMessage;
+                channel = message.Channel as ITextChannel;
             }
             else
             {
+                // Message is from the system or something else.
                 return;
             }
+            // Make a new thread
+            // TODO channel.CreateThreadAsync()
             // Check if the message is from the bot or not. We don't want to listen to our own messages because they can be tracked internally.
             if (Attention.NotInterested(messageParam))
             {
-                if (message.Author.Username == _name)
-                {
-                    _self = message.Author;
-                }
+                CheckSelf(message);
                 return;
             }
             // Decide what type of message this is.
@@ -103,6 +106,14 @@ namespace Realization
             {
                 // If the message was not handled, then it is a command and we should log the channel id, content, and user id
                 Log.Verbose("Command was issued from {0} in channel {1} with content {2}", message.Author.Id, message.Channel.Id, message.Content);
+            }
+        }
+
+        private void CheckSelf(SocketUserMessage message)
+        {
+            if (message.Author.Username == _name)
+            {
+                _self = message.Author;
             }
         }
 
