@@ -19,57 +19,48 @@ using static Totem.Timeline.FlowCall;
 using System;
 using Totem;
 using Serilog.Events;
+using Discord.Interactions;
 
 namespace Realization
 {
     public class Thalamus
     {
-        public AttentionSpan Focus = new();
-        public EmbeddingMemory GlobalLongMemory = new("longTerm-Memory.json");
-        public LimbicSystem Limbic = new();
-        public MultiTasking Auditory = new();
-        //public VentralStream Auditory = new();
-        public Cortex Cortex;
-        public ReticularSystem Attention;
-        private ShortTermMemory<string> _memory = new ShortTermMemory<string>();
-        private readonly DiscordSocketClient _client;
-        private readonly CommandService _commands;
-        private ServiceProvider _provider;
-        private string AllowedChannel = "bottest";
-        private bool _sleeping = true;
-        private bool _quiet = true;
-        private bool _imagine = false;
-        private bool _tokenize = false;
-        private bool _showMemory = false;
-        private List<Intention> _lastIntentions;
-        private SocketUser _self;
-        private GetAClue _cognition;
-        private string _promptTemplate = "{0}";
-        private DiskEmbedder _disk = new DiskEmbedder("longTerm-Memory.json");
-        private string _openAIKey = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI");
-        private string _name = "Vertex Intelligence";
+        //public VentralStream Auditory = new(); // TODO remove any vestiges of single-threaded system
+        DiskEmbedder _disk = new DiskEmbedder("longTerm-Memory.json"); // TODO deprecate this
+        ShortTermMemory<string> _memory = new ShortTermMemory<string>(); // TODO make a service to handle this separately
+        GetAClue Cognition;
+        ReticularSystem Attention;
+        MultiTasking Auditory = new(); // Supports multiple threads and channels
+        Cortex Cortex;
+        AttentionSpan Focus = new(); // TODO put to use
+        EmbeddingMemory GlobalLongMemory = new("longTerm-Memory.json"); // TODO swap to using this instead of DiskEmbedder
+        LimbicSystem Limbic = new(); // TODO put to use
+        SocketUser _self;
+        bool _sleeping = true;
+        bool _quiet = true;
+        bool _imagine = false;
+        bool _tokenize = false;
+        bool _showMemory = false;
+        string _promptTemplate = "{0}";
+        string _openAIKey = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI");
+        string _name = "Vertex Intelligence";
+        string AllowedChannel = "bottest";
+        readonly DiscordSocketClient _client;
+        readonly CommandService _commands;
+        IServiceProvider _services;
 
 
-        public Thalamus(DiscordSocketClient client, CommandService commands, GetAClue cognition)
+        public Thalamus(DiscordSocketClient client, CommandService commands, GetAClue cognition, IServiceProvider services)
         {
             _commands = commands;
             _client = client;
-            _cognition = cognition;
+            Cognition = cognition;
             var plasticIntent = new PlasticIntentions();
             //_lastIntentions = plasticIntent.DownloadIntentions();
-            _lastIntentions = new List<Intention>{new None()};
-            Cortex = new Cortex(_lastIntentions, _cognition, _openAIKey);
+            Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
             Attention = new ReticularSystem(_memory);
-        }
-
-        public async Task ConfigureBotServices()
-        {
+            _services = services;
             _client.MessageReceived += HandleMessageAsync;
-            var provider = new ServiceCollection();
-            //provider.AddSingleton<SchedulerService>();
-            _provider = provider.BuildServiceProvider();
-            await _commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(),
-                                            services: _provider);
         }
 
         public async Task HandleMessageAsync(SocketMessage messageParam)
@@ -87,8 +78,6 @@ namespace Realization
                 // Message is from the system or something else.
                 return;
             }
-            // Make a new thread
-            // TODO channel.CreateThreadAsync()
             // Check if the message is from the bot or not. We don't want to listen to our own messages because they can be tracked internally.
             if (Attention.NotInterested(messageParam))
             {
@@ -97,11 +86,13 @@ namespace Realization
             }
             // Decide what type of message this is.
             var channelType = CheckChannelType(messageParam);
-            bool handled = channelType switch
-            {
-                IThreadChannel => await HandleThreadChannel(messageParam, message),
-                ITextChannel => await HandleTextChannel(messageParam, message)
-            };
+            bool handled;
+            if (channelType == typeof(IThreadChannel))
+                handled = await HandleThreadChannel(messageParam, message);
+            else if (channelType == typeof(ITextChannel))
+                handled = await HandleTextChannel(messageParam, message);
+            else
+                handled = false;
             if (!handled)
             {
                 // If the message was not handled, then it is a command and we should log the channel id, content, and user id
@@ -291,17 +282,7 @@ namespace Realization
             Intention intent = new None(gpt3Intent);
             return intent;
         }
-        /// <summary>
-        /// The DidTopicShift method appears to be using some form of prediction system, represented by the Cortex field, to determine 
-        /// if the topic has shifted. It does this by calling the PredictTopicShift method on the Cortex object and passing in the message, 
-        /// currentTopic, and a string called wovenTopicRequest. The PredictTopicShift method returns a TopicShiftAnswer object, which is an 
-        /// object that contains a boolean value indicating whether the topic has shifted and a string value representing the new topic. The 
-        /// DidTopicShift method returns this TopicShiftAnswer object.
-        /// </summary>
-        /// <param name="messageParam"></param>
-        /// <param name="message"></param>
-        /// <param name="currentTopic"></param>
-        /// <returns></returns>
+        
         private async Task<TopicShiftAnswer> DidTopicShift(SocketMessage messageParam, SocketUserMessage? message, string currentTopic)
         {
             var wovenTopicRequest = WeavePromptBeforeResponse(messageParam.Channel.Id);
@@ -332,6 +313,7 @@ namespace Realization
             }
             return currentTopic;
         }
+        
         /// <summary>
         /// The first step in the ReactToUserMessage method is to track the message using short term memory by storing information
         /// about it, including its content, author, location in a channel, type, intention, and related context, in a memory tracking
@@ -458,7 +440,7 @@ namespace Realization
                 _memory = new ShortTermMemory<string>();
                 _sleeping = true;
                 _quiet = true;
-                Cortex = new Cortex(_lastIntentions, _cognition, _openAIKey);
+                Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
                 Attention = new ReticularSystem(_memory);
             }
 
