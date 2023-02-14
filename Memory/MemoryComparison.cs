@@ -22,10 +22,8 @@ namespace Memory
         const string SECTION = "\n### Memory Section\n";
         private Tokenizer _tokenizer = new();
         private EmbeddingEngine _engine { get; set; }
-        private DiskEmbedder _disk { get; set; }
-        public MemoryComparison(DiskEmbedder disk)
+        public MemoryComparison()
         {
-            _disk = disk;
             _engine = new EmbeddingEngine();
         }
         public static double VectorSimilarity(double[] x, double[] y)

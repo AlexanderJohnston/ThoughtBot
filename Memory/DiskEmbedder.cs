@@ -12,9 +12,10 @@ namespace Memory
     public class DiskEmbedder
     {
         public string Path { get; set; }
-        public DiskEmbedder(string template)
+        public DiskEmbedder(string path)
         {
-            Path = string.Format(template, Guid.Parse("dfb57541-a031-426f-b263-3138d030170f"));
+            //Path = string.Format(template, Guid.Parse("dfb57541-a031-426f-b263-3138d030170f"));
+            Path = path;
         }
 
         // Check if file already exists at path.
@@ -30,11 +31,11 @@ namespace Memory
                 {
                     File.WriteAllText(path, JsonConvert.SerializeObject(memories));
                 }
-                catch (System.IO.IOException)
-                {
-                    path = Path + new Random().Next(0,999999);
-                    File.WriteAllText(path, JsonConvert.SerializeObject(memories));
-                }
+                //catch (System.IO.IOException)
+                //{
+                //    path = Path + new Random().Next(0,999999);
+                //    File.WriteAllText(path, JsonConvert.SerializeObject(memories));
+                //}
                 catch (Exception ex) { throw ex;  }
             }
             else
@@ -47,13 +48,24 @@ namespace Memory
         // If it does not, return an empty set of memories.
         public List<EmbeddedMemory> ReadMemories()
         {
-            if (File.Exists(Path) && new FileInfo(Path).Length > 0)
+            try
             {
-                return JsonConvert.DeserializeObject<List<EmbeddedMemory>>(File.ReadAllText(Path));
+                if (File.Exists(Path) && new FileInfo(Path).Length != 0)
+                {
+                    return JsonConvert.DeserializeObject<List<EmbeddedMemory>>(File.ReadAllText(Path));
+                }
+                else
+                {
+                    return new List<EmbeddedMemory>();
+                }
             }
-            else
+            catch (FileNotFoundException _fex)
             {
                 return new List<EmbeddedMemory>();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }

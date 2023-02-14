@@ -149,8 +149,8 @@ namespace Realization
                 // Used thread id if available otherwise channel id
                 //var contextId = message.
                 //var embeddings = new EmbeddingMemory()
-                var comparison = new MemoryComparison(_disk);
-                var memories = _disk.ReadMemories();
+                var comparison = new MemoryComparison();
+                var memories = GlobalLongMemory.Memories;
                 var prompt = await comparison.ConstructPrompt(message.Content, memories);
                 await messageParam.Channel.SendMessageAsync(prompt);
                 var response = await Cortex.PredictResponse(message, prompt);
@@ -359,10 +359,7 @@ namespace Realization
             var embed = await Cortex.EmbedMemory(conversation, message, topic, context);
             embed.Topic = topic;
             embed.Context = context;
-            var memoryOnDisk = _disk;
-            var pastMemory = memoryOnDisk.ReadMemories();
-            pastMemory.Add(embed);
-            memoryOnDisk.WriteMemories(pastMemory);
+            GlobalLongMemory.AddMemory(embed);
             _memory.WipeAll(message.Channel.Id);
             Log.Debug("Memory embedded. Model: {0} | Usage: {1}", embed.Embedding.Model, embed.Embedding.Usage);
         }
