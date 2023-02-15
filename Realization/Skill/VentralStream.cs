@@ -41,7 +41,7 @@ namespace Realization.Skill
             if (ConversationExists(signal))
             {
 
-                return Dialogue.First(dialogue => Conversation(dialogue).Topic == signal.Topic).Value;
+                return Dialogue.First(dialogue => Conversation(dialogue).Id == signal.Channel).Value;
             }
             else
             {
@@ -55,11 +55,13 @@ namespace Realization.Skill
         }
         public Conversation Conversation(KeyValuePair<People, Conversation> selected) => selected.Value;
         private bool ConversationExists(AuditorySignal signal) =>
-            Dialogue.Any(dialogue => Conversation(dialogue).Topic == signal.Topic);
+            Dialogue.Any(dialogue => Conversation(dialogue).Id == signal.Channel);
         //private bool ContextExists(AuditorySignal signal) =>
         //    Dialogue.Any(dialogue => dialogue.)
 
         public Conversation GetConversation(string topic) => Dialogue.First(dialogue => Conversation(dialogue).Topic == topic).Value;
+        public Conversation GetConversation(ulong channelId) => Dialogue.First(dialogue => Conversation(dialogue).Id == channelId).Value;
+
         public string GetTopic(ulong person) => TopicLookup.First(topic => topic.Key.Id == person).Value;
         public bool TopicExists(ulong person) => TopicLookup.Any(topic => topic.Key.Id == person);
 

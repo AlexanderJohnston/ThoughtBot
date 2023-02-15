@@ -15,6 +15,7 @@ using PostSharp.Extensibility;
 using System.Threading.Channels;
 using Azure;
 using Memory.Converse;
+using Prompter;
 using static Totem.Timeline.FlowCall;
 using System;
 using Totem;
@@ -202,6 +203,14 @@ namespace Realization
         }
 
         private async Task ReactToUserMessage(SocketMessage messageParam, SocketUserMessage? message)
+        {
+            // Track the message with short term memory.
+            Guid memId = ShortMemory(message);
+            // Prepare a prompt for GPT-3 to predict a response to the user's message, then attempt it.
+            await TryRespondWithGpt3(messageParam, message);
+        }
+
+        private async Task OldReactToUserMessage(SocketMessage messageParam, SocketUserMessage? message)
         {            
             // Track the message with short term memory.
             Guid memId = ShortMemory(message);
@@ -229,6 +238,32 @@ namespace Realization
             return prediction;
         }
 
+        private async Task TryRespondWithGpt3(SocketMessage messageParam, SocketUserMessage? message)
+        {
+            var promptForGpt = WeavePromptToTemplate(messageParam.Channel.Id, _promptTemplate);
+            await Respond(message, promptForGpt);
+        }
+
+        /// <summary>
+        /// Rewrite the above <see cref="TryRespondWithGpt3"/> method to use the new <see cref="Loom"/> class to 
+        /// weave the prompt using <see cref="Loom.GeneratePrompt"/> rather than the old <see cref="WeavePromptToTemplate"/> method.
+        /// This will require the Loom to be properly spun up first by adding the variables to the <see cref="Loom"/> class by calling the appropriate child methods.
+        /// This includes Conversation, Memories, and the current instructions which we will call topic for now.
+        /// </summary>
+        /// <param name="messageParam"></param>
+        /// <param name="message"></param>
+        /// <returns><see cref="Task"/></returns>
+        private async Task TryRespondWithLoom(SocketMessage messageParam, SocketUserMessage? message)
+        {
+            var loom = new Loom();
+            loom.AddConversation(messageParam.Channel.Id);
+            loom.AddMemories(ShortMemory.Memories);
+            loom.AddTopic(_promptTemplate);
+            var promptForGpt = loom.GeneratePrompt();
+            await Respond(message, promptForGpt);
+        }
+
+
         private async Task TryRespondWithGpt3(SocketMessage messageParam, SocketUserMessage? message, string currentTopic, Intention prediction)
         {
             var promptForGpt = WeavePromptToTemplate(messageParam.Channel.Id, _promptTemplate);
@@ -240,27 +275,44 @@ namespace Realization
             return !_quiet;
         }
 
+        private async Task Respond(SocketUserMessage? message, string wovenRequest)
+        {
+            // Don't bother responding if a self isn't defined for sake of memory.
+            if (_self != null)
+            {
+                var response = await Cortex.PredictResponse(message, wovenRequest);
+                var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
+                await RememberSelf(botMemId, response, message.Channel.Id);
+            }
+        }
+
         private async Task Respond(SocketUserMessage? message, string currentTopic, Intention prediction, string wovenRequest)
         {
             // Don't bother responding if a self isn't defined for sake of memory.
             if (_self != null)
             {
                 var response = await Cortex.PredictResponse(message, wovenRequest);
-                var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id, prediction);
+                var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id/*, prediction*/);
                 await RememberSelf(currentTopic, prediction, botMemId, response, message.Channel.Id);
             }
+        }
+
+        private async Task RememberSelf(Guid botMemId, string response, ulong channelId)
+        {
+            var incomingSignal = new AuditorySignal() { Context = string.Empty, MemoryId = botMemId, Source = _self.Id, Topic = string.Empty, Text = response, Channel = channelId };
+            Auditory.ListenThread(incomingSignal);
         }
 
         private async Task RememberSelf(string currentTopic, Intention prediction, Guid botMemId, string response, ulong channelId)
         {
             var incomingSignal = new AuditorySignal() { Context = currentTopic, MemoryId = botMemId, Source = _self.Id, Topic = prediction.Name , Text = response, Channel = channelId };
-            Auditory.ListenChannel(incomingSignal);
+            Auditory.ListenThread(incomingSignal);
         }
 
         private async Task RememberOther(SocketUserMessage? message, Guid memId, string currentTopic, Intention prediction)
         {
             var userSignal = new AuditorySignal() { Context = currentTopic, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name, Text = message.Content, Channel = message.Channel.Id };
-            Auditory.ListenChannel(userSignal);
+            Auditory.ListenThread(userSignal);
             if (currentTopic != prediction.Name)
             {
                 await SaveConversation(message, userSignal, currentTopic); // TODO Currently fails to find the first topic unknown and then carries it onward.
@@ -303,7 +355,7 @@ namespace Realization
         { // TODO this is breaking topics
             var currentTopic = "Topic is not yet known.";
             VentralStream ventral;
-            if (Auditory.Channels.ContainsKey(messageParam.Channel.Id))
+            if (Auditory.Threads.ContainsKey(messageParam.Channel.Id))
             {
                 ventral = Auditory.Channels[messageParam.Channel.Id];
                 if (ventral.TopicExists(messageParam.Author.Id))
@@ -325,7 +377,7 @@ namespace Realization
         /// <returns></returns>
         private Guid ShortMemory(SocketUserMessage? message)
         {
-            return _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id, new None());
+            return _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id);
         }
 
         private async Task SaveConversation(SocketUserMessage message, AuditorySignal userSignal, string currentTopic)
@@ -334,10 +386,10 @@ namespace Realization
             Conversation conversation;
             try
             {
-                if (Auditory.Channels.ContainsKey(message.Channel.Id))
+                if (Auditory.Threads.ContainsKey(message.Channel.Id))
                 {
-                    ventral = Auditory.Channels[message.Channel.Id];
-                    conversation = ventral.GetConversation(currentTopic);
+                    ventral = Auditory.Threads[message.Channel.Id];
+                    conversation = ventral.GetConversation(message.Channel.Id);
                 }
                 else
                 {
@@ -461,7 +513,7 @@ namespace Realization
             }
             if (message.Contains("all dialogue"))
             {
-                var dialogue = JsonConvert.SerializeObject(Auditory.Channels.FirstOrDefault(chan => chan.Key == messageParam.Channel.Id).Value.Dialogue);
+                var dialogue = JsonConvert.SerializeObject(Auditory.Threads.FirstOrDefault(chan => chan.Key == messageParam.Channel.Id).Value.Dialogue);
                 await messageParam.Channel.SendMessageAsync(dialogue);
 
                 return true;

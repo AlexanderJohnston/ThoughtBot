@@ -81,7 +81,7 @@ namespace Prompter
         }
 
         /// <summary>
-        /// Generates the final prompt by passing all variables in. Disposes of the tokenizer afterward to clear memory.
+        /// Weaves the final prompt by passing all variables in. Disposes of the tokenizer afterward to clear memory.
         /// </summary>
         /// <returns>The final prompt after disposing of the tokenizer.</returns>
         public string GeneratePrompt()

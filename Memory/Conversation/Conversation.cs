@@ -10,6 +10,7 @@
     /// </summary>
     public class Conversation
     {
+        public ulong Id { get; set; }
         public string Topic { get; set; }
         public ulong Author { get; set; }
         public List<string> Context { get; set; }

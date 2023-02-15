@@ -23,14 +23,13 @@ namespace Memory.Converse
         public Intention Intention;
         public Guid Id;
 
-        public MemoryContext(string userName, MemoryType type, ulong channel, Intention intention, Guid id, string relatedContext = "")
+        public MemoryContext(string userName, MemoryType type, ulong channel, Guid id, string relatedContext = "")
         {
             Author = userName;
             Type = type;
             Channel = channel;
             RelatedToContextId = relatedContext;
             ContextId = Guid.NewGuid().ToString();
-            Intention = intention;
             Id = id;
         }
     }
@@ -58,10 +57,9 @@ namespace Memory.Converse
         /// <param name="user">an object representing the user who created the message</param>
         /// <param name="type">a value specifying the type of memory being tracked</param>
         /// <param name="channel">the ID of the channel where the message was sent</param>
-        /// <param name="intention">an object representing the intention behind the message</param>
         /// <param name="relatedContext">a string containing additional context related to the message (optional, default value is an empty string)</param>
         /// <returns>the id of the memory object.</returns>
-        public Guid Remember(T value, IUser user, MemoryType type, ulong channel, Intention intention, string relatedContext = "")
+        public Guid Remember(T value, IUser user, MemoryType type, ulong channel, string relatedContext = "")
         {
             var userId = user.DiscriminatorValue;
 
@@ -79,7 +77,7 @@ namespace Memory.Converse
             var memory = new Memory<T>();
             var id = Guid.NewGuid();
             memory.Value = value;
-            memory.Context = new MemoryContext(user.Username, type, channel, intention, id, relatedContext);
+            memory.Context = new MemoryContext(user.Username, type, channel, id, relatedContext);
             memories.Add(memory);
             channelList.Add(memory);
             SaveFocusedMemory(user, memory);
@@ -121,9 +119,8 @@ namespace Memory.Converse
                 var memories = Recall(userId);
                 foreach (var memory in memories)
                 {
-                    var explained = string.Format("I remember {0} providing the intent {1} to {2}: {3}",
+                    var explained = string.Format("I remember {0} providing the type {2}: {3}",
                         memory.Context.Author,
-                        memory.Context.Intention.Name,
                         memory.Context.Type,
                         memory.Value.ToString());
                     explainedMemories.Add(explained);
