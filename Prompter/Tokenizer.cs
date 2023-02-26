@@ -131,6 +131,8 @@ namespace Prompter
             return totalTokens;
         }
 
+        public void ResetMemoryTokens() => embeddingTokensUsed = 0;
+
         public void Dispose()
         {
             totalTokens = 0;

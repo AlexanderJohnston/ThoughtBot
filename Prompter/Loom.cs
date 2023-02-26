@@ -58,7 +58,7 @@ namespace Prompter
         {
             if (tokenizer.AddConversation(conversation))
             {
-                prompt.AddVariable("conversation", conversation);
+                prompt.AddConversation(conversation);
                 return true;
             }
             return false;
@@ -80,6 +80,12 @@ namespace Prompter
             return false;
         }
 
+        public void ResetMemory()
+        {
+            prompt.ResetMemory();
+            tokenizer.ResetMemoryTokens();
+        }
+
         /// <summary>
         /// Weaves the final prompt by passing all variables in. Disposes of the tokenizer afterward to clear memory.
         /// </summary>
@@ -87,7 +93,7 @@ namespace Prompter
         public string GeneratePrompt()
         {
             string finalPrompt = prompt.GeneratePrompt();
-            tokenizer.Dispose();
+            //tokenizer.Dispose();
             return finalPrompt;
         }
 
@@ -98,6 +104,11 @@ namespace Prompter
         public int GetTokenCount()
         {
             return tokenizer.TotalTokens();
+        }
+
+        public void AddMemory(object value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

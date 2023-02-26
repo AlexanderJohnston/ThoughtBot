@@ -20,7 +20,6 @@ namespace Memory
         const int MAX_SECTION_LEN = 1000;
         const string SEPARATOR = "\n* ";
         const string SECTION = "\n### Memory Section\n";
-        private Tokenizer _tokenizer = new();
         private EmbeddingEngine _engine { get; set; }
         public MemoryComparison()
         {
@@ -40,22 +39,10 @@ namespace Memory
             return memorySimilarities;
         }
 
-        ///<summary>
-        ///Parse the conversation into a list of memory text separated by <see cref="SEPARATOR">.
-        ///</summary> 
-        private string ParseMemoryFromConversation(Conversation conversation)
-        {
-            var memories = conversation.Memories.Select(mem => mem);
-            // Concatenate Author: to memories text
-            var authorMemories = memories.Select(mem => $"{mem.Author}: {mem.Text}");
-            var concat = string.Join(SEPARATOR, authorMemories);
-            return concat;
-        }
-
         public async Task<string> ConstructPrompt(string question, List<EmbeddedMemory> memories)
         {
             // Tokenize the separator and set maximum prompt length
-            int separatorLen = _tokenizer.Tokenize(SEPARATOR).Count();
+            int separatorLen = SEPARATOR.Tokenize().Count();
 
             // Prepare the past embedded memories for similarity comparison.
             Dictionary<(string, string), double[]> contextEmbeddings = GetContextualMemory(memories);
@@ -98,14 +85,14 @@ namespace Memory
                 if (documentSectionExists)
                 {
                     var documentSection = memories.First(x => x.Topic == key.Item2.Item1 && x.Context == key.Item2.Item2);
-                    var conversation = documentSection.Conversation.Memories.Select(memory => $"{memory.Author}: {memory.Text}").ToList();
-                    var tokens = _tokenizer.Tokenize(string.Join(SEPARATOR, conversation));
+                    var conversation = documentSection.Memory.ToString();
+                    var tokens = string.Join(SEPARATOR, conversation).Tokenize();
                     chosenSectionsLen += tokens.Count() + separatorLen;
                     if (chosenSectionsLen > MAX_SECTION_LEN)
                     {
                         break;
                     }
-                    var sections = documentSection.Conversation.Memories.Select(memory => memory.Text).ToList();
+                    var sections = documentSection.Memory.ToString();
                     var concat = string.Join(SEPARATOR, sections);
                     //var section = SECTION + concat; // TODO Save idea for later when you feel like doing the token math.
                     chosenSections.Add(concat);

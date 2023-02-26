@@ -11,8 +11,9 @@
     // Templates
     public static class Templates 
     {
-        public static string Respond => @"### Instructions
-{instructions}
+        public static string Respond => @"### System Instructions
+Your name is Vertex Intelligence or Vertai for short.
+{instruction}
 
 ### Memories
 {memories}

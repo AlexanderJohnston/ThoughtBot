@@ -25,11 +25,11 @@ namespace Memory
             var embedded = new QueryEmbedding(embedding, message, "Question", "Recall memory and context");
             return embedded;
         }
-        public async Task<EmbeddedMemory> GetEmbedding(Conversation conversation, string topic, string context)
+        public async Task<EmbeddedMemory> GetEmbedding(string message, string user, ulong userId, string topic, string context)
         {
-            var request = Embed(conversation);
+            var request = Embed(message, user);
             var embedding = await Respond(request);
-            var embedded = new EmbeddedMemory(embedding, conversation, topic, context);
+            var embedded = new EmbeddedMemory(embedding, message, user, userId, topic, context);
             return embedded;
         }
         //public async Task<EmbeddedMemory> GetEmbedding(IMessage message, string topic, string context)
@@ -57,15 +57,13 @@ namespace Memory
             SetBearerToken(_key);
             return request;
         }
-        public HttpRequestMessage Embed(Conversation input, string model = "text-embedding-ada-002")
+        public HttpRequestMessage Embed(string message, string username, string model = "text-embedding-ada-002")
         {
-            var memories = input.Memories.Select(mem => mem);
             // Concatenate Author: to memories text
-            var authorMemories = memories.Select(mem => $"{mem.Author}: {mem.Text}");
-            var concat = string.Join("\n*", authorMemories);
+            var authorMemories = $"{username}: {message}";
             var json = JsonConvert.SerializeObject(new
             {
-                input = concat,
+                input = authorMemories,
                 model = model
             });
             var request = new HttpRequestMessage

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Realization.Global;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace Realization
         }
 
         [SlashCommand("realize", "Creates a new thread for the bot to respond to.")]
-        public async Task RealizeCommand([Summary("input", "The input from the user.")] string input) /*, [ChannelTypes(ChannelType.Text)] IChannel channel*/
+        public async Task RealizeCommand([Summary("instructions", "Describe how you want the bot to behave. There is no limit to imagination.")] string input) /*, [ChannelTypes(ChannelType.Text)] IChannel channel*/
         {
             await RespondAsync("Creating a new thread.");
             // Check if the channel is an ITextChannel, if it isn't then we can't create a thread.
@@ -36,6 +37,7 @@ namespace Realization
             
             // Create a new thread for the bot to respond to.
             var thread = await textChannel.CreateThreadAsync(name, autoArchiveDuration: ThreadArchiveDuration.OneDay);
+            Instructor.AddInstruction(thread.Id, input);
 
             // Add the user to the thread after checking if they can be cast to an IGuildUser.
             if (Context.User is IGuildUser user)

@@ -19,6 +19,7 @@ namespace Prompter
         // The variables that will be passed into the prompt.
         private Dictionary<string, string> variables;
         private List<string> memories;
+        private List<string> conversation;
 
         /// <summary>
         /// Creates a new prompt with the given format.
@@ -28,7 +29,8 @@ namespace Prompter
         {
             Format = format;
             variables = new Dictionary<string, string>();
-            memories = new List<string>();
+            memories = new();
+            conversation = new();
         }
 
         /// <summary>
@@ -38,7 +40,23 @@ namespace Prompter
         /// <param name="value">The value of the variable.</param>
         public void AddVariable(string name, string value)
         {
-            variables.Add(name, value);
+            if (variables.ContainsKey(name))
+            {
+                variables[name] = value;
+            }
+            else
+            {
+                variables.Add(name, value);
+            }
+        }
+
+        /// <summary>
+        /// Adds a conversation to the prompt which may consist of several messages.
+        /// </summary>
+        /// <param name="memory">The memory to be stored.</param>
+        public void AddConversation(string memory)
+        {
+            conversation.Add(memory);
         }
 
         /// <summary>
@@ -59,6 +77,8 @@ namespace Prompter
             variables.Remove(name);
         }
 
+        public void ResetMemory() => memories = new();
+
         /// <summary>
         /// Generates the final prompt by passing all variables in.
         /// </summary>
@@ -68,14 +88,18 @@ namespace Prompter
             string prompt = Format;
 
             // Check if the variables conversation or instruction are present. If they are, then we need a stringbuilder to format them and to remove them from the dictionary.
-            var conversation = variables.ContainsKey("conversation") ? variables["conversation"] : null;
-            if (conversation != null)
+            //var conversation = variables.ContainsKey("conversation") ? variables["conversation"] : null;
+            if (this.conversation.Count > 0)
             {
-                var convoSb = new StringBuilder();
-
-                convoSb.Append("Conversation:\n");
-                convoSb.Append(conversation);
-                variables.Remove("conversation");
+                var sb = new StringBuilder();
+                sb.Append("Conversation:\n");
+                foreach (string message in this.conversation)
+                {
+                    sb.Append("    - ");
+                    sb.Append(message);
+                    sb.Append("\n");
+                }
+                prompt = prompt.Replace("{conversation}", sb.ToString());
             }
             var instructions = variables.ContainsKey("instructions") ? variables["instructions"] : null;
             if (instructions != null)
@@ -83,7 +107,9 @@ namespace Prompter
                 var instSb = new StringBuilder();
 
                 instSb.Append("Instructions:\n");
+                instSb.Append("    - ");
                 instSb.Append(instructions);
+                instSb.Append('\n');
                 variables.Remove("instructions");
             }
             if (memories.Count > 0)

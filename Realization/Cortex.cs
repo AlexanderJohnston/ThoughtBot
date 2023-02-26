@@ -28,10 +28,13 @@ namespace Realization
             _cognition = cognition;
         }
 
-        public async Task<EmbeddedMemory> EmbedMemory(Conversation conversation, SocketMessage messageParam, string topic, string context)
+        public async Task<EmbeddedMemory> EmbedMemory(SocketMessage messageParam, string topic, string context)
         {
             var embedEngine = new EmbeddingEngine();
-            var embed = await embedEngine.GetEmbedding(conversation, topic, context);
+            var message = messageParam.Content;
+            var user = messageParam.Author.Username;
+            var userId = messageParam.Author.Id;
+            var embed = await embedEngine.GetEmbedding(message, user, userId, topic, context);
             var model = JsonConvert.SerializeObject(embed.Embedding.Model);
             var usage = JsonConvert.SerializeObject(embed.Embedding.Usage);
             var obj = JsonConvert.SerializeObject(embed.Embedding.Object);
@@ -41,7 +44,6 @@ usage: {1},
 object: {2},
 data: {3}";
             var output = string.Format(template, model, usage, obj, data);
-            await messageParam.Channel.SendMessageAsync(output);
             return embed;
         }
 

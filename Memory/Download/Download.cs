@@ -6,12 +6,10 @@ namespace Memory.Download
     {
         private string _documentLink;
         private string _downloadedText;
-        private Tokenizer _tokenizer;
 
         public TextDownloader(string documentLink)
         {
             _documentLink = documentLink;
-            _tokenizer = new();
         }
 
         public void DownloadText()
@@ -24,7 +22,7 @@ namespace Memory.Download
 
         public int[] TokenizeText()
         {
-            return _tokenizer.Tokenize(_downloadedText);
+            return _downloadedText.Tokenize();
         }
     }
 }

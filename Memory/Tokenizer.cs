@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Memory
 {
-    public class Tokenizer
+    public static class TokenizerExtensions
     {
-        public int[] Tokenize(string input)
+        public static int[] Tokenize(this string input)
         {
             // load XLM Roberta tokenization model
             var h = BlingFireUtils.LoadModel("./gpt2.bin");

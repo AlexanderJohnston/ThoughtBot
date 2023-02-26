@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Memory.Converse;
+using Totem;
 
 namespace Memory
 {
@@ -32,13 +33,13 @@ namespace Memory
         [JsonProperty("context")]
         public string Context { get; set; }
         [JsonProperty("conversation")]
-        public Conversation Conversation { get; set; }
+        public Memorable Memory { get; set; }
         [JsonProperty("embedding")]
         public GptEmbedding Embedding { get; set; }
-        public EmbeddedMemory(GptEmbedding embedding, Conversation conversation, string topic, string context)
+        public EmbeddedMemory(GptEmbedding embedding, string message, string username, ulong userId, string topic, string context)
         {
             Embedding = embedding;
-            Conversation = conversation;
+            Memory = new(message, username, userId);
             Topic = topic;
             Context = context;
         }
@@ -53,5 +54,19 @@ namespace Memory
         public string Model { get; set; } = "text-embedding-ada-002-v2";
         [JsonProperty("usage")]
         public UsageModel Usage { get; set; }
+    }
+    public class Memorable
+    {
+        public string Message { get; set; }
+        public string Username { get; set; }
+        public ulong UserId { get; set; }
+
+        public Memorable(string message, string username, ulong userId)
+        {
+            Message = message;
+            Username = username;
+            UserId = userId;
+        }
+        public string ToString() => $"{Username}: {Message}";
     }
 }
