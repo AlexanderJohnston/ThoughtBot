@@ -41,7 +41,7 @@ namespace Realization
         SocketUser _self;
         ThreadWeaver _weaver = new ThreadWeaver();
         bool _sleeping = true;
-        bool _quiet = true;
+        bool _quiet = false;
         bool _imagine = false;
         bool _tokenize = false;
         bool _showMemory = false;
@@ -275,6 +275,9 @@ namespace Realization
             _weaver.ThreadConversation(embedding.Memory.ToString(), thread);
             var comparison = new MemoryComparison();
             var memories = GlobalLongMemory.Memories;
+            //var context = MemoryComparison.GetContextualMemory(memories);
+            //var relevantMemories = await comparison.OrderMemorySectionsByQuerySimilarity(embedding, context);
+            //var topMemories = relevantMemories.Take(5).Select(x => x);
             _weaver.ThreadMemories(memories, thread);
             var promptForGpt = _weaver.GeneratePromptFor(thread);
             await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
@@ -469,7 +472,7 @@ namespace Realization
             if (message.Channel.Name != AllowedChannel) return true;
 
             // Check for wake and sleep messages
-            if (message.Content.Contains("power up"))
+            if (message.Content.Contains("wake up"))
             {
                 if (_sleeping)
                 {
@@ -488,7 +491,24 @@ namespace Realization
                     return true;
                 }
             }
-
+            if (message.Content.Contains("reset bot"))
+            {
+                if (!_sleeping)
+                {
+                    await message.Channel.SendMessageAsync("I am resetting myself.");
+                    _sleeping = true;
+                    Limbic = new();
+                    Auditory = new();
+                    _memory = new ShortTermMemory<string>();
+                    _sleeping = true;
+                    _quiet = true;
+                    Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
+                    Attention = new ReticularSystem(_memory);
+                    _sleeping = false;
+                    await message.Channel.SendMessageAsync("I'm back.");
+                    return true;
+                }
+            } 
             if (message.Content.Contains("quiet mode"))
             {
                 _quiet = true;

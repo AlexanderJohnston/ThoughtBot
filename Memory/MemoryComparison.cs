@@ -38,6 +38,13 @@ namespace Memory
             var memorySimilarities = contexts.Select(x => (VectorSimilarity(vectorArray, x.Value), x.Key)).OrderByDescending(x => x.Item1).ToList();
             return memorySimilarities;
         }
+        // Order sections by similarity and then return as a list of tuples.
+        public async Task<List<(double, (string, string))>> OrderMemorySectionsByQuerySimilarity(EmbeddedMemory query, Dictionary<(string, string), double[]> contexts)
+        {
+            var vectorArray = query.Embedding.Data.Select(data => data.Embedding).First();
+            var memorySimilarities = contexts.Select(x => (VectorSimilarity(vectorArray, x.Value), x.Key)).OrderByDescending(x => x.Item1).ToList();
+            return memorySimilarities;
+        }
 
         public async Task<string> ConstructPrompt(string question, List<EmbeddedMemory> memories)
         {
@@ -108,7 +115,7 @@ namespace Memory
         /// </summary>
         /// <param name="memories">A list of previously embedded memories.</param>
         /// <returns></returns>
-        private static Dictionary<(string, string), double[]> GetContextualMemory(List<EmbeddedMemory> memories)
+        public static Dictionary<(string, string), double[]> GetContextualMemory(List<EmbeddedMemory> memories)
         {
             // Populate the dictionary with the EmbeddedMemory list using the Topic and Context for the tuple key, and use the first GptEmbedding.Data.Embedding array for the value.
             var contextEmbeddings = new Dictionary<(string, string), double[]>();
