@@ -83,7 +83,10 @@ namespace Prompter
         public void ResetMemory()
         {
             prompt.ResetMemory();
+            prompt.ResetConversation();
             tokenizer.ResetMemoryTokens();
+            tokenizer.ResetConversationTokens();
+
         }
 
         /// <summary>

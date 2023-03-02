@@ -76,6 +76,20 @@ namespace Realization.Behavior
             // If the input is not empty, return the behavior that matches the input.
             CurrentBehavior = new Prompt(Templates.Respond, input);
         }
+
+        public void SetBehavior(IExpression behavior)
+        {
+            CurrentBehavior = behavior;
+        }
+
+        public void SetDefaultBehavior(IExpression behavior)
+        {
+            DefaultBehavior = behavior;
+        }
+
+        public void SetDefaultBehavior(string input)
+        {
+            DefaultBehavior = new Prompt(Templates.Respond, input);
+        }
     }
-    
 }

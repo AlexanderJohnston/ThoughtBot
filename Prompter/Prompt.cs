@@ -78,6 +78,8 @@ namespace Prompter
         }
 
         public void ResetMemory() => memories = new();
+        public void ResetConversation() => conversation = new();
+        
 
         /// <summary>
         /// Generates the final prompt by passing all variables in.

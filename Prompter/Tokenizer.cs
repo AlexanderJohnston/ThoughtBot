@@ -132,6 +132,8 @@ namespace Prompter
         }
 
         public void ResetMemoryTokens() => embeddingTokensUsed = 0;
+        public void ResetConversationTokens() => conversationTokensUsed = 0;
+
 
         public void Dispose()
         {

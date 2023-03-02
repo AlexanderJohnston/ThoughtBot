@@ -40,6 +40,7 @@ namespace Realization
         LimbicSystem Limbic = new(); // TODO put to use
         SocketUser _self;
         ThreadWeaver _weaver = new ThreadWeaver();
+        InteractionCreatedHandler _interactionHandler = new();
         bool _sleeping = true;
         bool _quiet = false;
         bool _imagine = false;
@@ -65,6 +66,8 @@ namespace Realization
             Attention = new ReticularSystem(_memory);
             _services = services;
             _client.MessageReceived += HandleMessageAsync;
+            _client.ButtonExecuted += _interactionHandler.MyButtonHandler;
+            _client.SelectMenuExecuted += _interactionHandler.MyMenuHandler;
         }
 
         public async Task HandleMessageAsync(SocketMessage messageParam)
