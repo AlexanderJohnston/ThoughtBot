@@ -40,7 +40,7 @@ namespace Realization
         LimbicSystem Limbic = new(); // TODO put to use
         SocketUser _self;
         ThreadWeaver _weaver = new ThreadWeaver();
-        InteractionCreatedHandler _interactionHandler = new();
+        InteractionCreatedHandler _interactionHandler;
         bool _sleeping = true;
         bool _quiet = false;
         bool _imagine = false;
@@ -63,17 +63,19 @@ namespace Realization
             var plasticIntent = new PlasticIntentions();
             //_lastIntentions = plasticIntent.DownloadIntentions();
             Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
+            _interactionHandler = new InteractionCreatedHandler(_weaver, Cortex);
             Attention = new ReticularSystem(_memory);
             _services = services;
             _client.MessageReceived += HandleMessageAsync;
             _client.ButtonExecuted += _interactionHandler.MyButtonHandler;
             _client.SelectMenuExecuted += _interactionHandler.MyMenuHandler;
+            _client.ModalSubmitted += _interactionHandler.MyModalHandler;
         }
 
         public async Task HandleMessageAsync(SocketMessage messageParam)
         {
             // Check if the message is from a user, otherwise disregard it.
-            SocketUserMessage message;
+            SocketUserMessage message; 
             ITextChannel channel;
             if (messageParam is SocketUserMessage)
             {
@@ -221,7 +223,7 @@ namespace Realization
             // Track the message with short term memory.
             Guid memId = ShortMemory(message);
             // Save the message to long term memory.
-            var embeddedMemory = await Cortex.EmbedMemory(messageParam, "Thread", "Memory");
+            var embeddedMemory = await Cortex.EmbedMemory(messageParam, "Thread", $"{message.Id}");
             await TryRespondWithLoom(messageParam, message, memId, embeddedMemory, channelId);
             // Prepare a prompt for GPT-3 to predict a response to the user's message, then attempt it.
             //await TryRespondWithGpt3(messageParam, message);
@@ -274,13 +276,13 @@ namespace Realization
         {
             var thread = channelId;
             var instructions = Instructor.GetInstruction(thread);
-            _weaver.ThreadInstructions(instructions, thread);
+            _weaver.ThreadInstructions(string.Empty, thread);
             _weaver.ThreadConversation(embedding.Memory.ToString(), thread);
             var comparison = new MemoryComparison();
             var memories = GlobalLongMemory.Memories;
-            //var context = MemoryComparison.GetContextualMemory(memories);
-            //var relevantMemories = await comparison.OrderMemorySectionsByQuerySimilarity(embedding, context);
-            //var topMemories = relevantMemories.Take(5).Select(x => x);
+            var context = MemoryComparison.GetContextualMemory(memories);
+            var relevantMemories = await comparison.OrderMemorySectionsByQuerySimilarity(embedding, context);
+            var topMemories = relevantMemories.Take(5).Select(x => x);
             _weaver.ThreadMemories(memories, thread);
             var promptForGpt = _weaver.GeneratePromptFor(thread);
             await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
@@ -299,6 +301,7 @@ namespace Realization
             return !_quiet;
         }
 
+        // This handles GPT-3 responses with Davinci using the Loom weaving system.
         private async Task Respond(SocketUserMessage? message, string wovenRequest)
         {
             // Don't bother responding if a self isn't defined for sake of memory.
@@ -441,6 +444,15 @@ namespace Realization
 
         public async Task<bool> BasicCommands(SocketUserMessage message)
         {
+            // Check current user settings
+            if(message.Content.Contains("check my settings")) 
+            {
+                var user = message.Author;
+                var temperature = _interactionHandler.GetUserTemperature(user.Id);
+                var prompt = _interactionHandler.GetUserPrompt(user.Id);
+                await message.Channel.SendMessageAsync($"Settings for <@{user.Id}> are... Temperature: {temperature} | Prompt: \n{prompt}");
+
+            }
             // provide most relevant memories
             if (message.Content.Contains("what do you remember about my next message"))
             {

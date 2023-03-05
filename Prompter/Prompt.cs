@@ -103,6 +103,12 @@ namespace Prompter
                 }
                 prompt = prompt.Replace("{conversation}", sb.ToString());
             }
+            else
+            {
+                var sb = new StringBuilder();
+                sb.Append("Conversation:\n");
+                sb.Append("\n");
+            }
             var instructions = variables.ContainsKey("instructions") ? variables["instructions"] : null;
             if (instructions != null)
             {
@@ -113,6 +119,12 @@ namespace Prompter
                 instSb.Append(instructions);
                 instSb.Append('\n');
                 variables.Remove("instructions");
+            }
+            else
+            {
+                var instSb = new StringBuilder();
+                instSb.Append("Instructions:\n");
+                instSb.Append('\n');
             }
             if (memories.Count > 0)
             {
@@ -125,6 +137,12 @@ namespace Prompter
                     sb.Append("\n");
                 }
                 prompt = prompt.Replace("{memories}", sb.ToString());
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                sb.Append("Memories:\n");
+                sb.Append("\n");
             }
             // Write the remaining variables to the prompt.
             foreach (KeyValuePair<string, string> variable in variables)

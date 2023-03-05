@@ -20,12 +20,26 @@ namespace Realization
         public List<Intention> Intentions;
         private GetAClue _cognition;
         private string _openAIToken;
+        private Dictionary<ulong, float> UserTemperature { get; set; } = new();
 
         public Cortex(List<Intention> intentions, GetAClue cognition, string token)
         {
             _openAIToken = token;
             Intentions = intentions;
             _cognition = cognition;
+        }
+
+        // Add or update user temperature
+        public void AddTemperature(ulong userId, float temp)
+        {
+            if (!UserTemperature.ContainsKey(userId))
+            {
+                UserTemperature.Add(userId, temp);
+            }
+            else
+            {
+                UserTemperature[userId] = temp;
+            }
         }
 
         public async Task<EmbeddedMemory> EmbedMemory(SocketMessage messageParam, string topic, string context)
@@ -85,8 +99,14 @@ data: {3}";
 
         public async Task<string> PredictResponse(IMessage message, string content)
         {
+            float temperature = 0.7f;
+            // Check for a user temp
+            if (UserTemperature.ContainsKey(message.Author.Id))
+            {
+                temperature = UserTemperature[message.Author.Id];
+            }
             var responseEngine = new ResponsePredictionEngine(_openAIToken);
-            var response = await responseEngine.PredictResponse(content);
+            var response = await responseEngine.PredictResponse(content, "text-davinci-003", temperature);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
             //await ReadAzure(clue, message);
