@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Memory.Chat;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -98,6 +99,11 @@ namespace Prompter
             string finalPrompt = prompt.GeneratePrompt();
             //tokenizer.Dispose();
             return finalPrompt;
+        }
+
+        public List<GptChatMessage> GenerateChat()
+        {
+            return prompt.GenerateChat();
         }
 
         /// <summary>

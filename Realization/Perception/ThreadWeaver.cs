@@ -1,4 +1,5 @@
 ﻿using Memory;
+using Memory.Chat;
 using Prompter;
 using System;
 using System.Collections.Generic;
@@ -55,9 +56,9 @@ namespace Realization.Perception
         public void InitializeThread(ulong threadId, string option, ulong userId)
         {
             // Check for an existing user prompt
-            if (UserPrompts.ContainsKey(threadId))
+            if (UserPrompts.ContainsKey(userId))
             {
-                var prompt = new Prompt(UserPrompts[threadId]);
+                var prompt = new Prompt(UserPrompts[userId]);
                 AddDefaultPrompt(threadId, prompt);
             }
             else
@@ -68,6 +69,9 @@ namespace Realization.Perception
                         AddDefaultPrompt(threadId, new Prompt(Prompter.Templates.Teach));
                         break;
                     case "opt-chat":
+                        AddDefaultPrompt(threadId, new Prompt(Prompter.Templates.Chat));
+                        break;
+                    case "opt-davinci":
                         AddDefaultPrompt(threadId, new Prompt(Prompter.Templates.Chat));
                         break;
                     case "opt-character":
@@ -128,10 +132,20 @@ namespace Realization.Perception
                 UserPrompts[userId] = defaultPrompt;
             }
         }
+
+        public void DropUserSettings(ulong userId)
+        {
+            if (UserPrompts.ContainsKey(userId))
+            {
+                UserPrompts.Remove(userId);
+            }
+        }
+
         public bool Exists(ulong threadId) => Threads.Any(x => x.Key == threadId);
 
         private Loom For(ulong threadId) => Threads.First(loom => loom.Key == threadId).Value;
         public string GeneratePromptFor(ulong threadId) => Threads.First(loom => loom.Key == threadId).Value.GeneratePrompt();
+        public List<GptChatMessage> GenerateChatFor(ulong threadId) => Threads.First(loom => loom.Key == threadId).Value.GenerateChat();
 
         public Prompt GetDefaultPrompt(ulong threadId) => DefaultPrompts.First(prompt => prompt.Key == threadId).Value;
 

@@ -8,6 +8,7 @@ using System.Net.Mime;
 using System.Text;
 using Serilog;
 using Memory.Intent;
+using Memory.Chat;
 
 namespace Memory
 {
@@ -55,6 +56,7 @@ namespace Memory
         private string _authorTemplate = @"https://westus.api.cognitive.microsoft.com/luis/authoring/v3.0/apps/{0}/versions/{1}/";
         private readonly string _cognitiveUriTemplate = @"https://realize.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-10-01-preview";
         private readonly string _openUriTemplate = @"https://api.openai.com/v1/completions";
+        private readonly string _openUriChatTemplate = @"https://api.openai.com/v1/chat/completions";
 
         public string _token;
 
@@ -100,20 +102,56 @@ namespace Memory
             return deserialize.choices.FirstOrDefault().text;
         }
 
+        public async Task<string> PredictResponse(List<GptChatMessage> chatHistory, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 512)
+        {
+            var uriBuilder = BuildChatRequestToOpenAi();
+            var request = OpenAIRequest(uriBuilder.Uri, temperature, tokens, chatHistory, model);
+            HttpResponseMessage response = await DefaultResponder(request).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var deserialize = JsonConvert.DeserializeObject<GptChatResponse>(responseBody);
+            return deserialize.Choices.FirstOrDefault().Message.Content;
+        }
+
         private UriBuilder BuildRequestToOpenAi()
         {
             var uriBuilder = new UriBuilder(_openUriTemplate);
             SetBearerToken(_token);
             return uriBuilder;
         }
-        
-        private HttpRequestMessage OpenAIRequest(Uri uri, float temperature, int maxTokens, string message, string aiModel = "text-ada-002")
+
+        private UriBuilder BuildChatRequestToOpenAi()
+        {
+            var uriBuilder = new UriBuilder(_openUriChatTemplate);
+            SetBearerToken(_token);
+            return uriBuilder;
+        }
+
+        private HttpRequestMessage OpenAIRequest(Uri uri, float temp, int maxTokens, string message, string aiModel = "text-ada-002")
         {
             var testJson = JsonConvert.SerializeObject(new
             {
                 model = aiModel,
                 prompt = message,
-                temperature = temperature,
+                temperature = temp,
+                max_tokens = maxTokens
+            });
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = uri,
+                Content = new StringContent(testJson, Encoding.UTF8, MediaTypeNames.Application.Json /* or "application/json" in older versions */),
+            };
+            return request;
+        }
+
+        private HttpRequestMessage OpenAIRequest(Uri uri, float temp, int maxTokens, List<GptChatMessage> chatHistory, string aiModel = "text-ada-002")
+        {
+            var testJson = JsonConvert.SerializeObject(new
+            {
+                model = aiModel,
+                messages = chatHistory,
+                temperature = temp,
                 max_tokens = maxTokens
             });
             var request = new HttpRequestMessage
@@ -150,9 +188,12 @@ namespace Memory
 
     public class GptUsage
     {
-        public int prompt_tokens;
-        public int completion_tokens;
-        public int total_tokens;
+        [JsonProperty("prompt_tokens")]
+        public int PromptTokens;
+        [JsonProperty("completion_tokens")]
+        public int CompletionTokens;
+        [JsonProperty("total_tokens")]
+        public int TotalTokens;
     }
 
     public class GptChoice

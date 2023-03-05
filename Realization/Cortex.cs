@@ -10,6 +10,7 @@ using Memory;
 using Memory.Intent;
 using Discord.WebSocket;
 using Memory.Converse;
+using Memory.Chat;
 
 namespace Realization
 {
@@ -107,6 +108,23 @@ data: {3}";
             }
             var responseEngine = new ResponsePredictionEngine(_openAIToken);
             var response = await responseEngine.PredictResponse(content, "text-davinci-003", temperature);
+            await message.Channel.SendMessageAsync(response);
+            //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
+            //await ReadAzure(clue, message);
+            //await ReadEntities(message);
+            return response;
+        }
+
+        public async Task<string> PredictResponse(IMessage message, List<GptChatMessage> chatHistory)
+        {
+            float temperature = 0.7f;
+            // Check for a user temp
+            if (UserTemperature.ContainsKey(message.Author.Id))
+            {
+                temperature = UserTemperature[message.Author.Id];
+            }
+            var responseEngine = new ResponsePredictionEngine(_openAIToken);
+            var response = await responseEngine.PredictResponse(chatHistory, "gpt-3.5-turbo-0301", temperature);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
             //await ReadAzure(clue, message);

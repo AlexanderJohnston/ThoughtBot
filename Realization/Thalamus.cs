@@ -23,6 +23,7 @@ using Serilog.Events;
 using Discord.Interactions;
 using Realization.Perception;
 using Realization.Global;
+using Memory.Chat;
 
 namespace Realization
 {
@@ -284,9 +285,18 @@ namespace Realization
             var relevantMemories = await comparison.OrderMemorySectionsByQuerySimilarity(embedding, context);
             var topMemories = relevantMemories.Take(5).Select(x => x);
             _weaver.ThreadMemories(memories, thread);
-            var promptForGpt = _weaver.GeneratePromptFor(thread);
-            await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
-            await Respond(message, promptForGpt);
+            if (instructions == "opt-chat")
+            {
+                var chatForGpt = _weaver.GenerateChatFor(thread);
+                await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
+                await Respond(message, chatForGpt);
+            }
+            else
+            {
+                var promptForGpt = _weaver.GeneratePromptFor(thread);
+                await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
+                await Respond(message, promptForGpt);
+            }
         }
 
 
@@ -308,6 +318,19 @@ namespace Realization
             if (_self != null)
             {
                 var response = await Cortex.PredictResponse(message, wovenRequest);
+                _weaver.ThreadConversation(response, message.Channel.Id);
+                var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
+                await RememberSelf(botMemId, response, message.Channel.Id);
+            }
+        }
+
+        // This handles GPT-3 responses with Davinci using the Loom weaving system.
+        private async Task Respond(SocketUserMessage? message, List<GptChatMessage> chatHistory)
+        {
+            // Don't bother responding if a self isn't defined for sake of memory.
+            if (_self != null)
+            {
+                var response = await Cortex.PredictResponse(message, chatHistory);
                 _weaver.ThreadConversation(response, message.Channel.Id);
                 var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
                 await RememberSelf(botMemId, response, message.Channel.Id);
@@ -495,6 +518,11 @@ namespace Realization
                     _sleeping = false;
                     return true;
                 }
+                else
+                {
+                    await message.Channel.SendMessageAsync("I am already awake.");
+                    return true;
+                }
             }
             if (_sleeping) return false;
             if (message.Content.Contains("go to sleep"))
@@ -505,18 +533,21 @@ namespace Realization
                     _sleeping = true;
                     return true;
                 }
+                else
+                {
+                    await message.Channel.SendMessageAsync("Already sleeping.");
+                    return true;
+                }
             }
             if (message.Content.Contains("reset bot"))
             {
                 if (!_sleeping)
                 {
                     await message.Channel.SendMessageAsync("I am resetting myself.");
-                    _sleeping = true;
                     Limbic = new();
                     Auditory = new();
                     _memory = new ShortTermMemory<string>();
-                    _sleeping = true;
-                    _quiet = true;
+                    _quiet = false;
                     Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
                     Attention = new ReticularSystem(_memory);
                     _sleeping = false;
@@ -526,13 +557,30 @@ namespace Realization
             } 
             if (message.Content.Contains("quiet mode"))
             {
-                _quiet = true;
-                return true;
+                if (_quiet)
+                {
+                    await message.Channel.SendMessageAsync("I am already quiet.");
+                    return true;
+                }
+                else
+                {
+                    _quiet = true;
+                    await message.Channel.SendMessageAsync("Going quiet...");
+                    return true;
+                }
             }
             if (message.Content.Contains("verbose mode"))
             {
-                _quiet = false;
-                return true;
+                if (_quiet)
+                {
+                    await message.Channel.SendMessageAsync("I am already verbose.");
+                    return true;
+                }
+                else
+                {
+                    _quiet = false;
+                    return true;
+                }
             }
             if (message.Content.Contains("reset the thalamus"))
             {

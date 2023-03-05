@@ -75,7 +75,12 @@ namespace Realization
             if (!string.IsNullOrEmpty(prompt))
             {
                 _modals.AddPrompt(modal.User.Id, prompt);
-
+                _weaver.UpdateUserSetting(modal.User.Id, prompt);
+            }
+            else
+            {
+                _modals.AddPrompt(modal.User.Id, prompt);
+                _weaver.DropUserSettings(modal.User.Id);
             }
 
             await modal.RespondAsync("Settings updated.");
@@ -122,7 +127,8 @@ namespace Realization
                 .WithCustomId("conversation-type-menu")
                 .WithMinValues(1)
                 .WithMaxValues(1)
-                .AddOption("Chat", "opt-chat", "Talk with Vertai!")
+                .AddOption("Chat", "opt-chat", "Talk with Vertai using the latest Chat GPT!")
+                .AddOption("Davinci", "opt-davinci", "Talk with Vertai using GPT-3 Davinci!")
                 .AddOption("Characterize", "opt-character", "Personify Vertai and have a conversation with them!")
                 .AddOption("Teach", "opt-teach", "Teach Vertai something new!")
                 .AddOption("Recall", "opt-memory", "Recall memories with Vertai!")
@@ -176,6 +182,11 @@ namespace Realization
                 {
                     _weaver.NewThread(thread.Id);
                 }
+            }
+            if (option == "opt-chat")
+            {
+                await thread.SendMessageAsync("This thread is using Chat GPT 3.5 Turbo model release March 1st 2023.");
+                return;
             }
             var defaultPrompt = _weaver.GetDefaultPrompt(thread.Id);
             await thread.SendMessageAsync("Prompt used for this thread:\n---\n");

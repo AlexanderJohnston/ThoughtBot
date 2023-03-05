@@ -109,7 +109,8 @@ namespace Realization
                 .WithCustomId("conversation-type-menu")
                 .WithMinValues(1)
                 .WithMaxValues(1)
-                .AddOption("Chat", "opt-chat", "Talk with Vertai!")
+                .AddOption("Chat", "opt-chat", "Talk with Vertai using the latest Chat GPT!")
+                .AddOption("Davinci", "opt-davinci", "Talk with Vertai using GPT-3 Davinci!")
                 .AddOption("Characterize", "opt-character", "Personify Vertai and have a conversation with them!")
                 .AddOption("Teach", "opt-teach", "Teach Vertai something new!")
                 .AddOption("Recall", "opt-memory", "Recall memories with Vertai!");

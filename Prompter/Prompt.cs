@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Memory.Chat;
+using System.Text;
 
 namespace Prompter
 {
@@ -80,6 +81,31 @@ namespace Prompter
         public void ResetMemory() => memories = new();
         public void ResetConversation() => conversation = new();
         
+
+        public List<GptChatMessage> GenerateChat()
+        {
+            List<GptChatMessage> messages = new();
+            var instructions = variables.ContainsKey("instructions") ? variables["instructions"] : null;
+            if (instructions != null)
+            {
+                messages.Add(new GptChatMessage("system", instructions));
+            }
+            if (memories.Count > 0)
+            {
+                foreach (var memory in memories)
+                {
+                    messages.Add(new GptChatMessage("system", memory));
+                }
+            }
+            if (conversation.Count > 0)
+            {
+                foreach (var message in conversation)
+                {
+                    messages.Add(new GptChatMessage("user", message));
+                }
+            }
+            return messages;
+        }
 
         /// <summary>
         /// Generates the final prompt by passing all variables in.
