@@ -5,7 +5,7 @@ Code exists inside for integrating Microsoft CLU as well, but is not currently e
 
 # Requirements
 
-PostSharp is required by default, but you can easily disable it by deleting GlobalAssembly.cs and removing the nuget packages from the `Realization` project. I highly recommend just using a PostSharp Trial if you want to experiment with my bot though. The logs are helpful.
+[PostSharp](https://www.postsharp.net/) is required by default, but you can easily disable it by deleting GlobalAssembly.cs and removing the nuget packages from the `Realization` project. I highly recommend just using a PostSharp Trial if you want to experiment with my bot though. The logs are helpful.
 
 [PostSharp](https://www.postsharp.net/) is not required to use the compiled version of the bot however. I will have a compiled version of it up on the Releases page for use by 3/9/2023
 
