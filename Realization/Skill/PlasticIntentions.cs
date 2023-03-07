@@ -3,11 +3,12 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Web;
-using ThotLibrary;
+using Memory;
 using Memory.Intent;
 
 namespace Realization.Skill
 {
+    // Used for Microsoft CLU but this is not implemented in the current build.
     public class PlasticIntentions
     {
         private string _uriTemplate = @"https://westus.api.cognitive.microsoft.com/luis/api/v2.0/apps/{0}/versions/{1}/examples";
@@ -47,7 +48,6 @@ namespace Realization.Skill
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
-            //_client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "19b4bb7d2b5348919647946c54b7ba00");
         }
 
         private UriBuilder CognitiveServicesUri()
@@ -55,7 +55,7 @@ namespace Realization.Skill
             var uriTemplate = BuildUriTemplate("2a916803-0dc2-46b8-8caa-acef8df45eb4", "0.1");
             var builder = new UriBuilder(uriTemplate);
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["subscription-key"] = "6480eb3bbc1546e9983d1a621ab2cf99";
+            query["subscription-key"] = "YOUR_CLU_SUBSCRIPTION_KEY";
             query["skip"] = "0";
             query["take"] = "100";
 

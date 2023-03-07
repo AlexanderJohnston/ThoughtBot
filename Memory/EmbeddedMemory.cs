@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Memory.Converse;
-using Totem;
 
 namespace Memory
 {

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Web;
-using ThotLibrary;
+using Memory;
 using Discord;
 using Memory.Learning;
 using Newtonsoft.Json;

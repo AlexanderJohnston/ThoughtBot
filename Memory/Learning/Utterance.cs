@@ -1,5 +1,5 @@
-﻿using ThotLibrary;
-using ThotLibrary.Cognitive;
+﻿using Memory;
+using Memory.Cognitive;
 
 namespace Memory.Learning
 {

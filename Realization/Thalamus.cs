@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Realization.Skill;
 using System.Reflection;
 using System.Text;
-using ThotLibrary;
+using Memory;
 using Memory;
 using Memory.Intent;
 using Microsoft.Azure.CognitiveServices.Language.LUIS.Runtime.Models;
@@ -16,9 +16,6 @@ using System.Threading.Channels;
 using Azure;
 using Memory.Converse;
 using Prompter;
-using static Totem.Timeline.FlowCall;
-using System;
-using Totem;
 using Serilog.Events;
 using Discord.Interactions;
 using Realization.Perception;
@@ -27,33 +24,29 @@ using Memory.Chat;
 
 namespace Realization
 {
+    // This coordinates all information and data flow through the bot. All interactions end up here before a response is given.
+    // Please, excuse the mess.
     public class Thalamus
     {
-        //public VentralStream Auditory = new(); // TODO remove any vestiges of single-threaded system
-        DiskEmbedder _disk = new DiskEmbedder("longTerm-Memory.json"); // TODO deprecate this
-        ShortTermMemory<string> _memory = new ShortTermMemory<string>(); // TODO make a service to handle this separately
-        GetAClue Cognition;
-        ReticularSystem Attention;
-        MultiTasking Auditory = new(); // Supports multiple threads and channels
-        Cortex Cortex;
-        AttentionSpan Focus = new(); // TODO put to use
-        EmbeddingMemory GlobalLongMemory = new("longTerm-Memory.json"); // TODO swap to using this instead of DiskEmbedder
-        LimbicSystem Limbic = new(); // TODO put to use
-        SocketUser _self;
-        ThreadWeaver _weaver = new ThreadWeaver();
-        InteractionCreatedHandler _interactionHandler;
-        bool _sleeping = true;
-        bool _quiet = false;
-        bool _imagine = false;
-        bool _tokenize = false;
-        bool _showMemory = false;
-        string _promptTemplate = "{0}";
-        string _openAIKey = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI");
-        string _name = "Vertex Intelligence";
-        string AllowedChannel = "chat";
+        GetAClue Cognition; // Currently disabled.
+        ShortTermMemory<string> _memory = new ShortTermMemory<string>(); // Stores plaintext conversational memory for the bot.
+        EmbeddingMemory GlobalLongMemory = new("longTerm-Memory.json"); // Stores and retrieves embedded memories from disk as JSON.
+        ReticularSystem Attention; // Decides if a message is worth responding to.
+        MultiTasking Auditory = new(); // Supports multiple threads and channels.
+        Cortex Cortex; // Handles all calls to the OpenAI API and Microsoft API.
+        SocketUser _self; // The bot's user object.
+        ThreadWeaver _weaver = new ThreadWeaver(); // Weaves together every prompt for GPT to respond to dynamically.
+        InteractionCreatedHandler _interactionHandler; // Handles Discord interaction events.
+        bool _sleeping = true; // If true, the bot will not respond to commands in channels.
+        bool _quiet = false; // If true, the bot will not respond to threads.
+        bool _tokenize = false; // Returns next message's tokens for testing purposes.
+        bool _showMemory = false; // Shows bot's memory for testing purposes.
+        string _openAIKey = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI"); // Key stored separetly on disk to avoid accidentally checking it into source.
+        string _name = "Realization"; // Bot's name
+        string AllowedChannel = "chat"; // Default channel the bot is allowed to operate in.
         readonly DiscordSocketClient _client;
-        readonly CommandService _commands;
-        IServiceProvider _services;
+        readonly CommandService _commands; // Unused
+        IServiceProvider _services;        // Unused
 
 
         public Thalamus(DiscordSocketClient client, CommandService commands, GetAClue cognition, IServiceProvider services)
@@ -61,12 +54,15 @@ namespace Realization
             _commands = commands;
             _client = client;
             Cognition = cognition;
+            
+            // Required for CLU, this is basically just a shim for now.
             var plasticIntent = new PlasticIntentions();
-            //_lastIntentions = plasticIntent.DownloadIntentions();
             Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
             _interactionHandler = new InteractionCreatedHandler(_weaver, Cortex);
             Attention = new ReticularSystem(_memory);
             _services = services;
+
+            // Set up Discord response handlers
             _client.MessageReceived += HandleMessageAsync;
             _client.ButtonExecuted += _interactionHandler.MyButtonHandler;
             _client.SelectMenuExecuted += _interactionHandler.MyMenuHandler;
@@ -186,13 +182,6 @@ namespace Realization
                 _tokenize = false;
                 return true;
             }
-            // Store a new prompt for usage in GPT-3 response prediction.
-            if (_imagine)
-            {
-                _promptTemplate = message.Content;
-                _imagine = false;
-                return true;
-            }
             // Handle deterministic commands like putting the bot to sleep or checking memory.
             var happened = await BasicCommands(message);
             if (happened || _sleeping)
@@ -225,55 +214,16 @@ namespace Realization
             Guid memId = ShortMemory(message);
             // Save the message to long term memory.
             var embeddedMemory = await Cortex.EmbedMemory(messageParam, "Thread", $"{message.Id}");
-            await TryRespondWithLoom(messageParam, message, memId, embeddedMemory, channelId);
-            // Prepare a prompt for GPT-3 to predict a response to the user's message, then attempt it.
-            //await TryRespondWithGpt3(messageParam, message);
-        }
-
-        //private async Task OldReactToUserMessage(SocketMessage messageParam, SocketUserMessage? message)
-        //{            
-        //    // Track the message with short term memory.
-        //    Guid memId = ShortMemory(message);
-        //    // Decide if the topic has shifted and needs to be updated.
-        //    var currentTopic = RecallTopic(message);
-        //    var topicShift = await DidTopicShift(messageParam, message, currentTopic);
-        //    // Predict the intention of the user's message and then remember it.
-        //    Intention prediction = await PredictIntentWithGpt3(message, memId, currentTopic, topicShift.Topic, topicShift.Decision);
-        //    // Prepare a prompt for GPT-3 to predict a response to the user's message, then attempt it.
-        //    await TryRespondWithGpt3(messageParam, message, currentTopic, prediction);
-        //}
-
-        ///// <summary>
-        /////   Predict the intention of the user's message and then remember it.
-        ///// </summary>
-        ///// <param name="message">message to analyze</param>
-        ///// <param name="memId">memory ID from short term memory</param>
-        ///// <param name="currentTopic">the current topic as a string</param>
-        ///// <param name="topicShift">the topic we're shifting to as a string</param>
-        ///// <returns></returns>
-        //private async Task<Intention> PredictIntentWithGpt3(SocketUserMessage? message, Guid memId, string currentTopic, string topicShift, string decision)
-        //{
-        //    var prediction = await PredictIntent(message, currentTopic, topicShift, decision);
-        //    await RememberOther(message, memId, currentTopic, prediction);
-        //    return prediction;
-        //}
-
-        private async Task TryRespondWithGpt3(SocketMessage messageParam, SocketUserMessage? message)
-        {
-            var promptForGpt = WeavePromptToTemplate(messageParam.Channel.Id, _promptTemplate);
-            await Respond(message, promptForGpt);
+            await TryRespondWithLoom(message, memId, embeddedMemory, channelId);
         }
 
         /// <summary>
-        /// Rewrite the above <see cref="TryRespondWithGpt3"/> method to use the new <see cref="Loom"/> class to 
-        /// weave the prompt using <see cref="Loom.GeneratePrompt"/> rather than the old <see cref="WeavePromptToTemplate"/> method.
+        /// Uses the new <see cref="Loom"/> class to weave the prompt using <see cref="Loom.GeneratePrompt"/> rather than the old <see cref="WeavePromptToTemplate"/> method.
         /// This will require the Loom to be properly spun up first by adding the variables to the <see cref="Loom"/> class by calling the appropriate child methods.
-        /// This includes Conversation, Memories, and the current instructions which we will call topic for now.
+        /// This includes Conversation, Memories, and the current Instructions for System on the bot.
         /// </summary>
-        /// <param name="messageParam"></param>
-        /// <param name="message"></param>
         /// <returns><see cref="Task"/></returns>
-        private async Task TryRespondWithLoom(SocketMessage messageParam, SocketUserMessage? message, Guid memId, EmbeddedMemory embedding, ulong channelId)
+        private async Task TryRespondWithLoom(SocketUserMessage? message, Guid memId, EmbeddedMemory embedding, ulong channelId)
         {
             var thread = channelId;
             var instructions = Instructor.GetInstruction(thread);
@@ -299,13 +249,6 @@ namespace Realization
             }
         }
 
-
-        private async Task TryRespondWithGpt3(SocketMessage messageParam, SocketUserMessage? message, string currentTopic, Intention prediction)
-        {
-            var promptForGpt = WeavePromptToTemplate(messageParam.Channel.Id, _promptTemplate);
-            await Respond(message, currentTopic, prediction, promptForGpt);
-        }
-
         private bool Listening()
         {
             return !_quiet;
@@ -324,7 +267,7 @@ namespace Realization
             }
         }
 
-        // This handles GPT-3 responses with Davinci using the Loom weaving system.
+        // This handles Chat-GPT responses using the Loom weaving system.
         private async Task Respond(SocketUserMessage? message, List<GptChatMessage> chatHistory)
         {
             // Don't bother responding if a self isn't defined for sake of memory.
@@ -337,26 +280,9 @@ namespace Realization
             }
         }
 
-        private async Task Respond(SocketUserMessage? message, string currentTopic, Intention prediction, string wovenRequest)
-        {
-            // Don't bother responding if a self isn't defined for sake of memory.
-            if (_self != null)
-            {
-                var response = await Cortex.PredictResponse(message, wovenRequest);
-                var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id/*, prediction*/);
-                await RememberSelf(currentTopic, prediction, botMemId, response, message.Channel.Id);
-            }
-        }
-
         private async Task RememberSelf(Guid botMemId, string response, ulong channelId)
         {
             var incomingSignal = new AuditorySignal() { Context = string.Empty, MemoryId = botMemId, Source = _self.Id, Topic = string.Empty, Text = response, Channel = channelId };
-            Auditory.ListenThread(incomingSignal);
-        }
-
-        private async Task RememberSelf(string currentTopic, Intention prediction, Guid botMemId, string response, ulong channelId)
-        {
-            var incomingSignal = new AuditorySignal() { Context = currentTopic, MemoryId = botMemId, Source = _self.Id, Topic = prediction.Name , Text = response, Channel = channelId };
             Auditory.ListenThread(incomingSignal);
         }
 
@@ -367,58 +293,11 @@ namespace Realization
             GlobalLongMemory.AddMemory(embeddding); // TODO Currently fails to find the first topic unknown and then carries it onward.
             GlobalLongMemory.SaveMemories();
         }
-
-        private async Task<Intention> PredictIntent(SocketMessage message, string currentTopic, string topicShift, string decision)
-        {
-            string gpt3Intent;
-            if (decision.Contains("Yes"))
-            {
-                //gpt3Intent = await Cortex.PredictGptIntent(message);
-                gpt3Intent = topicShift;
-            }
-            else
-            {
-                gpt3Intent = currentTopic;
-            }
-            Intention intent = new None(gpt3Intent);
-            return intent;
-        }
-        
-        private async Task<TopicShiftAnswer> DidTopicShift(SocketMessage messageParam, SocketUserMessage? message, string currentTopic)
-        {
-            var wovenTopicRequest = WeavePromptBeforeResponse(messageParam.Channel.Id);
-            var topicShift = await Cortex.PredictTopicShift(message, currentTopic, wovenTopicRequest);
-            return topicShift;
-        }
-
-        /// <summary>
-        /// The RecallTopic method appears to be checking if a "ventral stream" object exists for the channel where the message was sent. 
-        /// A "ventral stream" is a type of memory system that tracks the topics of conversation in a channel. If a ventral stream object 
-        /// exists for the channel, the method checks if the topic for the user who sent the message is stored in the ventral stream's 
-        /// "topic lookup" dictionary. If it is, the method sets the currentTopic variable to the stored topic. If not, the currentTopic 
-        /// variable is set to a default value of "Topic is not yet known." The method returns the currentTopic variable.
-        /// </summary>
-        /// <param name="messageParam"></param>
-        /// <returns></returns>
-        private string RecallTopic(SocketMessage messageParam)
-        { // TODO this is breaking topics
-            var currentTopic = "Topic is not yet known.";
-            VentralStream ventral;
-            if (Auditory.Threads.ContainsKey(messageParam.Channel.Id))
-            {
-                ventral = Auditory.Channels[messageParam.Channel.Id];
-                if (ventral.TopicExists(messageParam.Author.Id))
-                {
-                    currentTopic = ventral.TopicLookup.First(person => person.Key.Id == messageParam.Author.Id).Value;
-                }
-            }
-            return currentTopic;
-        }
         
         /// <summary>
         /// The first step in the ReactToUserMessage method is to track the message using short term memory by storing information
         /// about it, including its content, author, location in a channel, type, intention, and related context, in a memory tracking
-        /// system.This system creates a new memory object for the message and associates it with the user and channel it came from.
+        /// system. This system creates a new memory object for the message and associates it with the user and channel it came from.
         /// The memory object is given a globally unique identifier(Guid) which can be used to identify it in the memory system.The
         /// method returns this Guid so that it can be used later in the process.
         /// </summary>
@@ -428,42 +307,6 @@ namespace Realization
         {
             return _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id);
         }
-
-        //private async Task SaveConversation(SocketUserMessage message, AuditorySignal userSignal, string currentTopic)
-        //{
-        //    VentralStream ventral;
-        //    Conversation conversation;
-        //    try
-        //    {
-        //        if (Auditory.Threads.ContainsKey(message.Channel.Id))
-        //        {
-        //            ventral = Auditory.Threads[message.Channel.Id];
-        //            conversation = ventral.GetConversation(message.Channel.Id);
-        //        }
-        //        else
-        //        {
-        //            Log.Error("Failed to find a conversation for {0}", currentTopic);
-        //            return;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Log.Error("Failed to find a conversation for {0}", currentTopic);
-        //        return;
-        //    }
-        //    var memories = _memory.AllMemories(message.Channel.Id).ToList();
-        //    //var dynamicMemory = memories.Select(x => $"{x.Context.Author}: {x.Value}").ToList(); 
-        //    //var json = JsonConvert.SerializeObject(conversation);
-        //    var topic = userSignal.Topic;
-        //    // Concatenate the list of contexts from the conversation.
-        //    var context = string.Join("\n*", userSignal.Context);
-        //    var embed = await Cortex.EmbedMemory(conversation, message, topic, context);
-        //    embed.Topic = topic;
-        //    embed.Context = context;
-        //    GlobalLongMemory.AddMemory(embed);
-        //    _memory.WipeAll(message.Channel.Id);
-        //    Log.Debug("Memory embedded. Model: {0} | Usage: {1}", embed.Embedding.Model, embed.Embedding.Usage);
-        //}
 
         public async Task<bool> BasicCommands(SocketUserMessage message)
         {
@@ -488,22 +331,10 @@ namespace Realization
                 _tokenize = true;
                 return true;
             }
-            if (message.Content.Contains("Realize new prompt"))
-            {
-                _imagine = true;
-                await message.Channel.SendMessageAsync("I will use the next message you send as the new template.");
-                return true;
-            }
             // Dictate where the bot is allowed to operate.
-            if (message.Content.Contains("move Thought here"))
+            if (message.Content.Contains("move Realization here"))
             {
                 AllowedChannel = message.Channel.Name;
-                return true;
-            }
-            // Go into prototyping mode.
-            if (message.Content.Contains("imagine dragons"))
-            {
-                _imagine = true;
                 return true;
             }
             // Restrict message handling to one channel.
@@ -544,7 +375,6 @@ namespace Realization
                 if (!_sleeping)
                 {
                     await message.Channel.SendMessageAsync("I am resetting myself.");
-                    Limbic = new();
                     Auditory = new();
                     _memory = new ShortTermMemory<string>();
                     _quiet = false;
@@ -579,18 +409,9 @@ namespace Realization
                 else
                 {
                     _quiet = false;
+                    await message.Channel.SendMessageAsync("Going verbose...");
                     return true;
                 }
-            }
-            if (message.Content.Contains("reset the thalamus"))
-            {
-                Limbic = new();
-                Auditory = new();
-                _memory = new ShortTermMemory<string>();
-                _sleeping = true;
-                _quiet = true;
-                Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
-                Attention = new ReticularSystem(_memory);
             }
 
             // Pass the message to the conversation handler for the first pass of hard-coded responses.
@@ -632,11 +453,6 @@ namespace Realization
                 await messageParam.Channel.SendMessageAsync(sb.ToString());
                 return true;
             }
-            if (message.Contains("now wake up"))
-            {
-                await messageParam.Channel.SendMessageAsync("Yes I am listening.");
-                return true;
-            }
             if (message.Contains("good bot"))
             {
                 await messageParam.Channel.SendMessageAsync("Thank you.");
@@ -649,24 +465,7 @@ namespace Realization
             }
             return false;
         }
-        public string Weave(ulong channelId, string author, string message)
-        {
-            var memories = _memory.AllMemories(channelId);
-            var sb = new StringBuilder();
-            foreach (var memory in memories)
-            {
-                sb.Append((string)memory.Context.Author);
-                sb.Append(": ");
-                sb.Append((string)(memory.Value.Trim()));
-                sb.AppendLine();
-            }
-            sb.Append(author);
-            sb.Append(": ");
-            sb.Append((string)(message.Trim()));
-            sb.AppendLine();
-            return sb.ToString();
-        }
-
+        
         public string WeavePromptToTemplate(ulong channelId, string template = "{0}")
         {
             var weaveDefaultPrompt = WeavePrompt(channelId);
@@ -687,19 +486,6 @@ namespace Realization
             }
             sb.Append(_self.Username);
             sb.Append(": ");
-            return sb.ToString();
-        }
-        public string WeavePromptBeforeResponse(ulong channelId)
-        {
-            var memories = _memory.AllMemories(channelId);
-            var sb = new StringBuilder();
-            foreach (var memory in memories)
-            {
-                sb.Append((string)memory.Context.Author);
-                sb.Append(": ");
-                sb.Append((string)(memory.Value.Trim()));
-                sb.AppendLine();
-            }
             return sb.ToString();
         }
     }

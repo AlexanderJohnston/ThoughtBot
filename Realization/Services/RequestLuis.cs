@@ -23,7 +23,7 @@ namespace Realization.Services
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "19b4bb7d2b5348919647946c54b7ba00");
+            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "YOUR_OCP_APIM_SUBSCRIPTION_KEY");
         }
 
         private UriBuilder CognitiveServicesUri()
@@ -31,7 +31,7 @@ namespace Realization.Services
             var uriTemplate = BuildUriTemplate("ccf14592-8bca-4d36-925b-8152d2aedddc", "0.1");
             var builder = new UriBuilder(uriTemplate);
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["subscription-key"] = "fee758b0a7fe4eb9b7ca9adca180f4ae";
+            query["subscription-key"] = "YOUR_CLU_SUBSCRIPTION_KEY";
 
             builder.Query = query.ToString();
             return builder;

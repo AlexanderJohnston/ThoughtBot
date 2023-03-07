@@ -2,6 +2,7 @@
 
 namespace Realization
 {
+    // Stores a default prompt as well as desired temperature for each user. Lost on restart.
     internal class UserSettings
     {
         private Dictionary<ulong, float> Temperature { get; set; } = new();

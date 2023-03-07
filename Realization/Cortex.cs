@@ -5,7 +5,6 @@ using AzureLUIS;
 using Discord;
 using Newtonsoft.Json;
 using System.Text.Json;
-using ThotLibrary;
 using Memory;
 using Memory.Intent;
 using Discord.WebSocket;
@@ -16,7 +15,7 @@ namespace Realization
 {
     public class Cortex
     {
-        public string ProjectName = "Realize";
+        public string ProjectName = "Realization";
         public string DeploymentName = "FirstRealization";
         public List<Intention> Intentions;
         private GetAClue _cognition;

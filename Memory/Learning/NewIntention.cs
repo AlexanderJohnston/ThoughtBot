@@ -1,4 +1,4 @@
-﻿using ThotLibrary.Cognitive;
+﻿using Memory.Cognitive;
 
 namespace Memory.Learning
 {

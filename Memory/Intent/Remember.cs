@@ -1,4 +1,4 @@
-﻿using ThotLibrary;
+﻿using Memory;
 
 namespace Memory.Intent
 {

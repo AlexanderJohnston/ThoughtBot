@@ -1,4 +1,5 @@
-﻿namespace ThotLibrary.Cognitive
+﻿
+namespace Memory.Cognitive
 {
     public class LearnedEntity
     {

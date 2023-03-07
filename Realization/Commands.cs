@@ -7,6 +7,7 @@ internal class Commands
 {
     public async Task MessageReceived(SocketMessage message)
     {
+        // Serves as an echo to confirm if the bot is online or not.
         if (message.Content == "!ping")
             await message.Channel.SendMessageAsync("Received!");
     }

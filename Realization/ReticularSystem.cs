@@ -5,6 +5,7 @@ using Realization.Skill;
 
 namespace Realization
 {
+    // Decides if messages should be processed or not.
     public class ReticularSystem
     {
         ShortTermMemory<string> _memory;

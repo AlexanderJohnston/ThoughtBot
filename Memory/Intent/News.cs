@@ -1,6 +1,4 @@
-﻿using ThotLibrary;
-
-namespace Memory.Intent
+﻿namespace Memory.Intent
 {
     public class News : Intention
     {

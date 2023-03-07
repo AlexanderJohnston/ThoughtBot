@@ -22,62 +22,6 @@ namespace Realization
             _handler = handler;
         }
 
-        [SlashCommand("button-test", "Testing button interaction components.")]
-        public async Task Spawn()
-        {
-            var builder = new ComponentBuilder().WithButton("Realization button test", "test-version-0.0");
-            await ReplyAsync("Here is a button!", components: builder.Build());
-        }
-
-        [SlashCommand("modal-test", "Test modal.")]
-        public async Task ModalTest()
-        {
-            var mb = new ModalBuilder()
-                .WithTitle("Fav Food")
-                .WithCustomId("food_menu")
-                .AddTextInput("What??", "food_name", placeholder: "Pizza")
-                .AddTextInput("Why??", "food_reason", TextInputStyle.Paragraph, "Kus it's so tasty");
-
-            await Context.Interaction.RespondWithModalAsync(mb.Build());
-        }
-
-        //[Command("modal")]
-        //public async Task ModalCommand()
-        //{
-        //    var user = Context.User;
-        //    var dmChannel = await user.GetOrCreateDMChannelAsync();
-
-        //    // Create a new message builder
-        //    var messageBuilder = new ComponentBuilder();
-
-        //    // Add the text input field
-        //    messageBuilder.WithContent("Please enter some text:");
-        //    var input = new TextInputBuilder()
-        //        .WithCustomId("text_input")
-        //        .WithPlaceholder("Enter some text")
-        //        .Build();
-        //    messageBuilder.AddComponents(input);
-
-        //    // Add the button
-        //    var button = new ButtonBuilder()
-        //        .WithLabel("Submit")
-        //        .WithStyle(ButtonStyle.Success)
-        //        .WithCustomId("submit-button");
-        //    messageBuilder.AddComponents(button);
-
-        //    // Add the menu
-        //    var menu = new SelectMenuBuilder()
-        //        .WithCustomId("menu")
-        //        .WithPlaceholder("Select an option")
-        //        .AddOption("Option 1", "option-1", "Option 1")
-        //        .AddOption("Option 2", "option-2", "Option 2")
-        //        .AddOption("Option 3", "option-3", "Option 3");
-        //    messageBuilder.AddComponents(menu);
-
-        //    // Send the message to the user's DM channel
-        //    await dmChannel.SendMessageAsync(messageBuilder.Build());
-        //}
-
         [SlashCommand("character", "Set up a character for Vertai to act.")]
         public async Task CharacterModal()
         {

@@ -2,6 +2,7 @@
 
 namespace Realization
 {
+    // Personal console theme.
     public static class ConsoleExtensions
     {
         public static SystemConsoleTheme BlueConsole { get; } = new SystemConsoleTheme(

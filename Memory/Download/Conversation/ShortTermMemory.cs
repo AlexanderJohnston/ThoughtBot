@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System.Threading.Channels;
-using ThotLibrary;
+using Memory;
 
 namespace Memory.Converse
 {

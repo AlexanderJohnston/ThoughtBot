@@ -1,4 +1,4 @@
-﻿namespace ThotLibrary
+﻿namespace Memory
 {
     public interface Intention
     {
