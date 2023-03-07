@@ -5,6 +5,10 @@ Code exists inside for integrating Microsoft CLU as well, but is not currently e
 
 **Roadmap**:
 
+* Read large files that don't fit into a single message.
+
+* Working on a method to process 16k and 32k messages.
+
 * Whisper Integration for Discord voice chat.
 
 * DALLE-2 Integration for drawing on Discord.
