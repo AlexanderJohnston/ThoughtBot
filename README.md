@@ -3,6 +3,12 @@ This bot integrates GPT-3 Davinci, GPT-3 Ada embedding, and Chat-GPT 3.5 to crea
 
 Code exists inside for integrating Microsoft CLU as well, but is not currently enabled or used while I focus on Chat GPT.
 
+# Requirements
+
+PostSharp is required by default, but you can easily disable it by deleting GlobalAssembly.cs and removing the nuget packages from the `Realization` project. I highly recommend just using a PostSharp Trial if you want to experiment with my bot though. The logs are helpful.
+
+PostSharp is not required to use the compiled version of the bot however. I will have a compiled version of it up on the Releases page for use by 3/9/2023
+
 # Setup
 
 Step 1. Create a new Discord Developer application.
