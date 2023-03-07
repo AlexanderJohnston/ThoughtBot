@@ -3,6 +3,19 @@ This bot integrates GPT-3 Davinci, GPT-3 Ada embedding, and Chat-GPT 3.5 to crea
 
 Code exists inside for integrating Microsoft CLU as well, but is not currently enabled or used while I focus on Chat GPT.
 
+**Roadmap**:
+
+* Whisper Integration for Discord voice chat.
+
+* DALLE-2 Integration for drawing on Discord.
+
+* CLU integration from Microsoft for more accurate entity analysis and deconstruction.
+
+* Use proper long-term memory database instead of JSON.
+
+* Build a model for users to share, edit, and drop memories on demand.
+
+
 # Requirements
 
 [PostSharp](https://www.postsharp.net/) is required by default, but you can easily disable it by deleting GlobalAssembly.cs and removing the nuget packages from the `Realization` project. I highly recommend just using a PostSharp Trial if you want to experiment with my bot though. The logs are helpful.
