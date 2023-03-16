@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Memory.Sharing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,47 +10,70 @@ namespace Memory
     // Tracks embedded memories in memory and calls a file manager to persist them to disk.
     public class EmbeddingMemory
     {
+        public List<EmbeddedMemory> Global { get; set; }
         public List<EmbeddedMemory> Memories { get; set; }
-        public DiskEmbedder DiskEmbedder { get; set; }
-        public EmbeddingMemory(string path)
+        public PersistentLongTermMemorySystem LongTermMemorySystem { get; set; }
+
+        public EmbeddingMemory(string storagePath)
         {
+            Global = new List<EmbeddedMemory>();
             Memories = new List<EmbeddedMemory>();
-            DiskEmbedder = new DiskEmbedder(path);
+            LongTermMemorySystem = new PersistentLongTermMemorySystem(storagePath);
         }
-        // Add a new memory to the list of memories.
-        public void AddMemory(EmbeddedMemory memory)
+
+        public void TransferToGlobalMemory()
+        {
+            foreach (EmbeddedMemory memory in Memories)
+            {
+                LongTermMemorySystem.AddGlobalMemory(memory);
+            }
+
+        }
+
+        public void AddMemory(EmbeddedMemory memory, ulong userId)
         {
             Memories.Add(memory);
+            LongTermMemorySystem.AddMemory(memory, userId);
         }
-        // Add a range memory to the list of memories.
-        public void AddMemories(List<EmbeddedMemory> memories)
+
+        public void AddMemories(List<EmbeddedMemory> memories, ulong userId)
         {
             Memories.AddRange(memories);
+            foreach (var memory in memories)
+            {
+                LongTermMemorySystem.AddMemory(memory, userId);
+            }
         }
-        // Remove a memory from the list of memories.
-        public void RemoveMemory(EmbeddedMemory memory)
+
+        public void RemoveMemory(EmbeddedMemory memory, ulong userId)
         {
             Memories.Remove(memory);
+            LongTermMemorySystem.RemoveMemory(memory, userId);
         }
-        // Remove all memories.
-        public void RemoveMemories(List<EmbeddedMemory> memories)
+
+        public void RemoveAllMemories()
         {
-            Memories = new();
+            Memories.Clear();
+            LongTermMemorySystem.RemoveAllMemories();
         }
-        // Remove memories for a specific model
-        public void RemoveMemories(string model)
+
+        public void RemoveMemoriesForModel(string model, ulong userId)
         {
             Memories.RemoveAll(memory => memory.Embedding.Model == model);
+            LongTermMemorySystem.RemoveMemoriesForModel(model, userId);
         }
-        // Saves all memories to disk.
-        public void SaveMemories()
+
+        public void SaveMemories(ulong userId)
         {
-            DiskEmbedder.WriteMemories(Memories);
+            LongTermMemorySystem.SaveUserMemoriesToDisk(userId);
+            LongTermMemorySystem.SaveGlobalMemoriesToDisk();
         }
-        // Loads all memories from disk.
-        public void LoadMemories()
+
+        public void LoadMemories(ulong userId)
         {
-            Memories = DiskEmbedder.ReadMemories();
+            Global = LongTermMemorySystem.GetGlobalMemories();
+            Memories = LongTermMemorySystem.GetUserMemories(userId);
         }
     }
+
 }

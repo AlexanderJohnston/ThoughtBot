@@ -9,47 +9,51 @@ namespace Memory.Sharing
     public class PersistentLongTermMemorySystem : LongTermMemorySystem
     {
         private DiskEmbedder diskEmbedder;
+        private string basePath;
 
         public PersistentLongTermMemorySystem(string storagePath) : base()
         {
-            diskEmbedder = new DiskEmbedder(storagePath);
-            LoadFromDisk();
+            basePath = storagePath;
+            diskEmbedder = new DiskEmbedder(basePath);
+            LoadGlobalMemoriesFromDisk();
         }
 
-        public void SaveToDisk()
+        public void SaveGlobalMemoriesToDisk()
         {
-            List<EmbeddedMemory> allMemories = new List<EmbeddedMemory>(GetGlobalMemories());
-
-            foreach (var userMemories in GetAllUserMemories())
-            {
-                allMemories.AddRange(userMemories.Value);
-            }
-
-            diskEmbedder.WriteMemories(allMemories);
+            diskEmbedder.WriteMemories(GetGlobalMemories(), basePath);
         }
 
-        private void LoadFromDisk()
+        public void SaveUserMemoriesToDisk(ulong userId)
         {
-            List<EmbeddedMemory> allMemories = diskEmbedder.ReadMemories();
+            var userMemoriesPath = GetUserMemoriesPath(userId);
+            diskEmbedder.WriteMemories(GetUserMemories(userId), userMemoriesPath);
+        }
 
-            foreach (EmbeddedMemory memory in allMemories)
+        public void LoadUserMemoriesFromDisk(ulong userId)
+        {
+            var userMemoriesPath = GetUserMemoriesPath(userId);
+            List<EmbeddedMemory> userMemories = diskEmbedder.ReadMemories(userMemoriesPath);
+
+            foreach (EmbeddedMemory memory in userMemories)
             {
-                if (memory.Memory.UserId == 0)
-                {
-                    // Global memory
-                    AddGlobalMemory(memory);
-                }
-                else
-                {
-                    // User memory
-                    AddMemory(memory, memory.Memory.UserId);
-                }
+                AddMemory(memory, userId);
             }
         }
 
-        private Dictionary<ulong, List<EmbeddedMemory>> GetAllUserMemories()
+        private void LoadGlobalMemoriesFromDisk()
         {
-            return userMemories;
+            List<EmbeddedMemory> globalMemories = diskEmbedder.ReadMemories(basePath);
+
+            foreach (EmbeddedMemory memory in globalMemories)
+            {
+                AddGlobalMemory(memory);
+            }
+        }
+
+        private string GetUserMemoriesPath(ulong userId)
+        {
+            return Path.Combine(basePath, $"user_{userId}");
         }
     }
+
 }

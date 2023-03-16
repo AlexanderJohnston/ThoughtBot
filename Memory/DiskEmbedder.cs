@@ -11,48 +11,40 @@ namespace Memory
     // Stores EmbeddedMemories to disk and retrieves them.
     public class DiskEmbedder
     {
-        public string Path { get; set; }
-        public DiskEmbedder(string path)
+        public string BasePath { get; set; }
+
+        public DiskEmbedder(string basePath)
         {
-            //Path = string.Format(template, Guid.Parse("dfb57541-a031-426f-b263-3138d030170f"));
-            Path = path;
+            BasePath = basePath;
         }
 
-        // Check if file already exists at path.
-        // If it does, overwrite it with the list of memories.
-        // If it doesn't, create it and write list of memories to it.
-        public void WriteMemories(List<EmbeddedMemory> memories)
+        public void WriteMemories(List<EmbeddedMemory> memories, string path)
         {
+            string fullPath = System.IO.Path.Combine(BasePath, path);
 
-            if (File.Exists(Path))
+            if (File.Exists(fullPath))
             {
-                string path = Path;
                 try
                 {
-                    File.WriteAllText(path, JsonConvert.SerializeObject(memories));
+                    File.WriteAllText(fullPath, JsonConvert.SerializeObject(memories));
                 }
-                //catch (System.IO.IOException)
-                //{
-                //    path = Path + new Random().Next(0,999999);
-                //    File.WriteAllText(path, JsonConvert.SerializeObject(memories));
-                //}
-                catch (Exception ex) { throw ex;  }
+                catch (Exception ex) { throw ex; }
             }
             else
             {
-                File.WriteAllText(Path, JsonConvert.SerializeObject(memories));
+                File.WriteAllText(fullPath, JsonConvert.SerializeObject(memories));
             }
         }
-        // Check if file already exists at path and that it is not empty.
-        // If it does, read all memories from it and return them.
-        // If it does not, return an empty set of memories.
-        public List<EmbeddedMemory> ReadMemories()
+
+        public List<EmbeddedMemory> ReadMemories(string path)
         {
+            string fullPath = System.IO.Path.Combine(BasePath, path);
+
             try
             {
-                if (File.Exists(Path) && new FileInfo(Path).Length != 0)
+                if (File.Exists(fullPath) && new FileInfo(fullPath).Length != 0)
                 {
-                    return JsonConvert.DeserializeObject<List<EmbeddedMemory>>(File.ReadAllText(Path));
+                    return JsonConvert.DeserializeObject<List<EmbeddedMemory>>(File.ReadAllText(fullPath));
                 }
                 else
                 {

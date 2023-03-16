@@ -191,17 +191,17 @@ namespace Realization
 
         private async Task<bool> HandleThreadChannel(SocketMessage messageParam, SocketUserMessage message, IThreadChannel channel)
         {
-            // This my be a new channel, so we need to create a new thread for it. TODO deprecate this, handled by interactionhandler
+            // This may be a new channel, so we need to create a new thread for it. TODO deprecate this, handled by interactionhandler
             if (!_weaver.Exists(messageParam.Channel.Id))
             {
                 _weaver.NewThread(messageParam.Channel.Id);
             }
+
             // Listen to incoming messages and respond to them.
             if (Listening())
             {
-                // Load memories for this user.
-                GlobalLongMemory = new($"{message.Author.Id}.json");
-                GlobalLongMemory.LoadMemories();
+                ulong userId = message.Author.Id;
+                GlobalLongMemory.LoadMemories(userId);
                 await ReactToUserMessage(messageParam, message, channel.Id);
                 return true;
             }
@@ -290,10 +290,11 @@ namespace Realization
         {
             var userSignal = new AuditorySignal() { Context = currentTopic, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name, Text = message.Content, Channel = message.Channel.Id };
             Auditory.ListenThread(userSignal);
-            GlobalLongMemory.AddMemory(embeddding); // TODO Currently fails to find the first topic unknown and then carries it onward.
-            GlobalLongMemory.SaveMemories();
+            ulong userId = message.Author.Id;
+            GlobalLongMemory.AddMemory(embeddding, userId);
+            GlobalLongMemory.SaveMemories(userId);
         }
-        
+
         /// <summary>
         /// The first step in the ReactToUserMessage method is to track the message using short term memory by storing information
         /// about it, including its content, author, location in a channel, type, intention, and related context, in a memory tracking

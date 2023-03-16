@@ -45,14 +45,34 @@ namespace Memory.Sharing
         {
             return globalMemories;
         }
-
-
         public void TransferToGlobal(ulong userId, EmbeddedMemory memory)
         {
             if (userMemories.ContainsKey(userId) && userMemories[userId].Contains(memory))
             {
                 userMemories[userId].Remove(memory);
                 globalMemories.Add(memory);
+            }
+        }
+        
+        public void RemoveMemory(EmbeddedMemory memory, ulong userId)
+        {
+            if (userMemories.ContainsKey(userId))
+            {
+                userMemories[userId].Remove(memory);
+            }
+        }
+
+        public void RemoveAllMemories()
+        {
+            userMemories.Clear();
+            globalMemories.Clear();
+        }
+
+        public void RemoveMemoriesForModel(string model, ulong userId)
+        {
+            if (userMemories.ContainsKey(userId))
+            {
+                userMemories[userId].RemoveAll(memory => memory.Embedding.Model == model);
             }
         }
     }
