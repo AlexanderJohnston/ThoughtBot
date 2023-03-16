@@ -2,6 +2,8 @@
 
 namespace Prompter
 {
+
+
     /// <summary>
     /// This class helps to limit the length of strings by returning a substring of the string which is less than or equal to the allowed length.
     /// It has a limit for each type of prompt variable, conversation, embeddings, instructions, and a 20 token buffer of empty space.
@@ -11,7 +13,7 @@ namespace Prompter
     public class Tokenizer : IEnforceTokenizer, IDisposable
     {
         // The maximum amount of tokens allowed for each conversation.
-        private const int MAX_CONVERSATION_TOKENS = 2200;
+        private const int MAX_CONVERSATION_TOKENS = 2100;
         // The maximum amount of tokens allowed for each embedding.
         private const int MAX_EMBEDDING_TOKENS = 1500;
         // The maximum amount of tokens allowed for each instruction.

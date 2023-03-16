@@ -127,11 +127,11 @@ namespace Realization
                 .WithCustomId("conversation-type-menu")
                 .WithMinValues(1)
                 .WithMaxValues(1)
-                .AddOption("Chat", "opt-chat", "Talk with Vertai using the latest Chat GPT!")
-                .AddOption("Davinci", "opt-davinci", "Talk with Vertai using GPT-3 Davinci!")
-                .AddOption("Characterize", "opt-character", "Personify Vertai and have a conversation with them!")
-                .AddOption("Teach", "opt-teach", "Teach Vertai something new!")
-                .AddOption("Recall", "opt-memory", "Recall memories with Vertai!")
+                .AddOption("Chat", "opt-chat", "Talk with Realai using the latest Chat GPT!")
+                .AddOption("Davinci", "opt-davinci", "Talk with Realai using GPT-3 Davinci!")
+                .AddOption("Characterize", "opt-character", "Personify Realai and have a conversation with them!")
+                .AddOption("Teach", "opt-teach", "Teach Realai something new!")
+                .AddOption("Recall", "opt-memory", "Recall memories with Realai!")
                 .WithDisabled(true);
 
             var builder = new ComponentBuilder()

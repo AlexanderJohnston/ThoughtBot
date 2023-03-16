@@ -22,7 +22,7 @@ namespace Realization
             _handler = handler;
         }
 
-        [SlashCommand("character", "Set up a character for Vertai to act.")]
+        [SlashCommand("character", "Set up a character for Realai to act.")]
         public async Task CharacterModal()
         {
             var mb = new ModalBuilder()
@@ -33,7 +33,7 @@ namespace Realization
             await RespondWithModalAsync(mb.Build());
         }
 
-        [SlashCommand("settings", "Configure Vertai to your liking.")]
+        [SlashCommand("settings", "Configure Realai to your liking.")]
         public async Task SettingsModal()
         {
             var mb = new ModalBuilder()
@@ -45,7 +45,7 @@ namespace Realization
             await RespondWithModalAsync(mb.Build());
         }
 
-        [SlashCommand("converse", "Create a new conversation with Vertai.")]
+        [SlashCommand("converse", "Create a new conversation with Realai.")]
         public async Task Converse()
         {
             var menuBuilder = new SelectMenuBuilder()
@@ -53,11 +53,11 @@ namespace Realization
                 .WithCustomId("conversation-type-menu")
                 .WithMinValues(1)
                 .WithMaxValues(1)
-                .AddOption("Chat", "opt-chat", "Talk with Vertai using the latest Chat GPT!")
-                .AddOption("Davinci", "opt-davinci", "Talk with Vertai using GPT-3 Davinci!")
-                .AddOption("Characterize", "opt-character", "Personify Vertai and have a conversation with them!")
-                .AddOption("Teach", "opt-teach", "Teach Vertai something new!")
-                .AddOption("Recall", "opt-memory", "Recall memories with Vertai!");
+                .AddOption("Chat", "opt-chat", "Talk with Realai using the latest Chat GPT!")
+                .AddOption("Davinci", "opt-davinci", "Talk with Realai using GPT-3 Davinci!")
+                .AddOption("Characterize", "opt-character", "Personify Realai and have a conversation with them!")
+                .AddOption("Teach", "opt-teach", "Teach Realai something new!")
+                .AddOption("Recall", "opt-memory", "Recall memories with Realai!");
 
             var builder = new ComponentBuilder()
                 .WithSelectMenu(menuBuilder);

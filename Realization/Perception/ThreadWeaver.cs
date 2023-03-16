@@ -16,7 +16,7 @@ namespace Realization.Perception
         private Dictionary<ulong, Prompt> DefaultPrompts { get; set; } = new();
         private Dictionary<ulong, Loom> Threads { get; set; } = new();
         public void ThreadInstructions(string instructions, ulong threadId) => For(threadId).AddInstruction(instructions);
-        public void ThreadConversation(string message, ulong threadId) => For(threadId).AddConversation(message);
+        public void ThreadConversation(string message, ulong threadId, string role) => For(threadId).AddConversation(message, role);
         public void ThreadMemories(List<EmbeddedMemory> embedding, ulong threadId)
         {
             var loom = For(threadId);

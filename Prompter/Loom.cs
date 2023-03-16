@@ -55,11 +55,11 @@ namespace Prompter
         /// </summary>
         /// <param name="conversation">The conversation to add.</param>
         /// <returns>A boolean indicating whether or not the conversation was added.</returns>
-        public bool AddConversation(string conversation)
+        public bool AddConversation(string conversation, string role)
         {
             if (tokenizer.AddConversation(conversation))
             {
-                prompt.AddConversation(conversation);
+                prompt.AddConversation(conversation, role);
                 return true;
             }
             return false;

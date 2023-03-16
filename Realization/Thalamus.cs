@@ -43,7 +43,7 @@ namespace Realization
         bool _showMemory = false; // Shows bot's memory for testing purposes.
         string _openAIKey = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI"); // Key stored separetly on disk to avoid accidentally checking it into source.
         string _name = "Realization"; // Bot's name
-        string AllowedChannel = "chat"; // Default channel the bot is allowed to operate in.
+        string AllowedChannel = "thoughtbot"; // Default channel the bot is allowed to operate in.
         readonly DiscordSocketClient _client;
         readonly CommandService _commands; // Unused
         IServiceProvider _services;        // Unused
@@ -191,7 +191,7 @@ namespace Realization
 
         private async Task<bool> HandleThreadChannel(SocketMessage messageParam, SocketUserMessage message, IThreadChannel channel)
         {
-            // This is a new channel, so we need to create a new thread for it.
+            // This my be a new channel, so we need to create a new thread for it. TODO deprecate this, handled by interactionhandler
             if (!_weaver.Exists(messageParam.Channel.Id))
             {
                 _weaver.NewThread(messageParam.Channel.Id);
@@ -228,7 +228,7 @@ namespace Realization
             var thread = channelId;
             var instructions = Instructor.GetInstruction(thread);
             _weaver.ThreadInstructions(string.Empty, thread);
-            _weaver.ThreadConversation(embedding.Memory.ToString(), thread);
+            _weaver.ThreadConversation(embedding.Memory.ToString(), thread, "user");
             var comparison = new MemoryComparison();
             var memories = GlobalLongMemory.Memories;
             var context = MemoryComparison.GetContextualMemory(memories);
@@ -261,7 +261,7 @@ namespace Realization
             if (_self != null)
             {
                 var response = await Cortex.PredictResponse(message, wovenRequest);
-                _weaver.ThreadConversation(response, message.Channel.Id);
+                _weaver.ThreadConversation(response, message.Channel.Id, "assistant");
                 var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
                 await RememberSelf(botMemId, response, message.Channel.Id);
             }
@@ -274,7 +274,7 @@ namespace Realization
             if (_self != null)
             {
                 var response = await Cortex.PredictResponse(message, chatHistory);
-                _weaver.ThreadConversation(response, message.Channel.Id);
+                _weaver.ThreadConversation(response, message.Channel.Id, "assistant");
                 var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
                 await RememberSelf(botMemId, response, message.Channel.Id);
             }

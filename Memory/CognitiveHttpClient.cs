@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Web;
 
 namespace Memory
@@ -32,7 +33,7 @@ namespace Memory
         {
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
+                new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
         }
 
         public UriBuilder CognitiveServicesUri(string message)

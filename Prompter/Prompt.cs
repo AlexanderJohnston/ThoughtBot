@@ -20,7 +20,7 @@ namespace Prompter
         // The variables that will be passed into the prompt.
         private Dictionary<string, string> variables;
         private List<string> memories;
-        private List<string> conversation;
+        private List<RoleMessage> conversation;
 
         /// <summary>
         /// Creates a new prompt with the given format.
@@ -55,9 +55,10 @@ namespace Prompter
         /// Adds a conversation to the prompt which may consist of several messages.
         /// </summary>
         /// <param name="memory">The memory to be stored.</param>
-        public void AddConversation(string memory)
+        public void AddConversation(string memory, string role)
         {
-            conversation.Add(memory);
+            var message = new RoleMessage(memory, role);
+            conversation.Add(message);
         }
 
         /// <summary>
@@ -99,9 +100,9 @@ namespace Prompter
             }
             if (conversation.Count > 0)
             {
-                foreach (var message in conversation)
+                foreach (var msg in conversation)
                 {
-                    messages.Add(new GptChatMessage("user", message));
+                    messages.Add(new GptChatMessage(msg.Role, msg.Message));
                 }
             }
             return messages;
@@ -121,10 +122,12 @@ namespace Prompter
             {
                 var sb = new StringBuilder();
                 sb.Append("Conversation:\n");
-                foreach (string message in this.conversation)
+                foreach (RoleMessage msg in this.conversation)
                 {
                     sb.Append("    - ");
-                    sb.Append(message);
+                    sb.Append(msg.Role);
+                    sb.Append(": ");
+                    sb.Append(msg.Message);
                     sb.Append("\n");
                 }
                 prompt = prompt.Replace("{conversation}", sb.ToString());
@@ -176,6 +179,18 @@ namespace Prompter
                 prompt = prompt.Replace("{" + variable.Key + "}", variable.Value);
             }
             return prompt;
+        }
+
+        private class RoleMessage
+        {
+            public string Message { get; set; }
+            public string Role { get; set; }
+
+            public RoleMessage(string message, string role)
+            {
+                Message = message;
+                Role = role;
+            }
         }
     }
 }
