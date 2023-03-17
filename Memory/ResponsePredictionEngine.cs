@@ -91,7 +91,7 @@ namespace Memory
             return await PredictResponse(prompt, "text-ada-001");
         }
 
-        public async Task<string> PredictResponse(string message, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 512)
+        public async Task<string> PredictResponse(string message, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 5120)
         {
             var uriBuilder = BuildRequestToOpenAi();
             var request = OpenAIRequest(uriBuilder.Uri, temperature, tokens, message, model);
@@ -102,7 +102,7 @@ namespace Memory
             return deserialize.choices.FirstOrDefault().text;
         }
 
-        public async Task<string> PredictResponse(List<GptChatMessage> chatHistory, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 512)
+        public async Task<string> PredictResponse(List<GptChatMessage> chatHistory, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 4000)
         {
             var uriBuilder = BuildChatRequestToOpenAi();
             var request = OpenAIRequest(uriBuilder.Uri, temperature, tokens, chatHistory, model);

@@ -12,6 +12,8 @@ namespace Memory
     {
         public List<EmbeddedMemory> Global { get; set; }
         public List<EmbeddedMemory> Memories { get; set; }
+
+        public List<EmbeddedMemory> Thread { get; set; }
         public PersistentLongTermMemorySystem LongTermMemorySystem { get; set; }
 
         public EmbeddingMemory(string storagePath)
@@ -21,9 +23,9 @@ namespace Memory
             LongTermMemorySystem = new PersistentLongTermMemorySystem(storagePath);
         }
 
-        public void TransferToGlobalMemory()
+        public void TransferToGlobalMemory(List<EmbeddedMemory> memories)
         {
-            foreach (EmbeddedMemory memory in Memories)
+            foreach (EmbeddedMemory memory in memories)
             {
                 LongTermMemorySystem.AddGlobalMemory(memory);
             }
@@ -32,7 +34,6 @@ namespace Memory
 
         public void AddMemory(EmbeddedMemory memory, ulong userId)
         {
-            Memories.Add(memory);
             LongTermMemorySystem.AddMemory(memory, userId);
         }
 
@@ -63,15 +64,27 @@ namespace Memory
             LongTermMemorySystem.RemoveMemoriesForModel(model, userId);
         }
 
+        public void RemoveMemoriesFor(string model, ulong userId)
+        {
+            Memories.RemoveAll(memory => memory.Embedding.Model == model);
+            LongTermMemorySystem.RemoveMemoriesForModel(model, userId);
+        }
+
+
         public void SaveMemories(ulong userId)
         {
             LongTermMemorySystem.SaveUserMemoriesToDisk(userId);
+        }
+
+        public void SaveGlobal()
+        {
             LongTermMemorySystem.SaveGlobalMemoriesToDisk();
         }
 
         public void LoadMemories(ulong userId)
         {
             Global = LongTermMemorySystem.GetGlobalMemories();
+            LongTermMemorySystem.LoadUserMemoriesFromDisk(userId);
             Memories = LongTermMemorySystem.GetUserMemories(userId);
         }
     }

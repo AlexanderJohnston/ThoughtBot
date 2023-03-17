@@ -25,7 +25,7 @@ namespace Memory
             var embedded = new QueryEmbedding(embedding, message, "Question", "Recall memory and context");
             return embedded;
         }
-        public async Task<EmbeddedMemory> GetEmbedding(string message, string user, ulong userId, string topic, string context)
+        public async Task<EmbeddedMemory> GetEmbedding(string message, string user, ulong userId, ulong topic, ulong context)
         {
             var request = Embed(message, user);
             var embedding = await Respond(request);

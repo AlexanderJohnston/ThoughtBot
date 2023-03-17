@@ -28,14 +28,14 @@ namespace Memory
     public class EmbeddedMemory
     {
         [JsonProperty("topic")]
-        public string Topic { get; set; }
+        public ulong Topic { get; set; }
         [JsonProperty("context")]
-        public string Context { get; set; }
+        public ulong Context { get; set; }
         [JsonProperty("conversation")]
         public Memorable Memory { get; set; }
         [JsonProperty("embedding")]
         public GptEmbedding Embedding { get; set; }
-        public EmbeddedMemory(GptEmbedding embedding, string message, string username, ulong userId, string topic, string context)
+        public EmbeddedMemory(GptEmbedding embedding, string message, string username, ulong userId, ulong topic, ulong context)
         {
             Embedding = embedding;
             Memory = new(message, username, userId);

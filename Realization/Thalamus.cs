@@ -149,21 +149,6 @@ namespace Realization
 
         private async Task<bool> HandleTextChannel(SocketMessage messageParam, SocketUserMessage message)
         {
-            // Check the current message to compare it against existing memories.
-            if (_showMemory)
-            {
-                // Used thread id if available otherwise channel id
-                //var contextId = message.
-                //var embeddings = new EmbeddingMemory()
-                var comparison = new MemoryComparison();
-                var memories = GlobalLongMemory.Memories;
-                var prompt = await comparison.ConstructPrompt(message.Content, memories);
-                await messageParam.Channel.SendMessageAsync(prompt);
-                var response = await Cortex.PredictResponse(message, prompt);
-                await messageParam.Channel.SendMessageAsync(response);
-                _showMemory = false;
-                return true;
-            }
             // Tokenize the user's message and return to them the list of tokens using the Tokenizer from Memory
             if (_tokenize)
             {
@@ -201,7 +186,7 @@ namespace Realization
             if (Listening())
             {
                 ulong userId = message.Author.Id;
-                GlobalLongMemory.LoadMemories(userId);
+                GlobalLongMemory.LoadMemories(channel.Id);
                 await ReactToUserMessage(messageParam, message, channel.Id);
                 return true;
             }
@@ -213,7 +198,7 @@ namespace Realization
             // Track the message with short term memory.
             Guid memId = ShortMemory(message);
             // Save the message to long term memory.
-            var embeddedMemory = await Cortex.EmbedMemory(messageParam, "Thread", $"{message.Id}");
+            var embeddedMemory = await Cortex.EmbedMemory(messageParam);
             await TryRespondWithLoom(message, memId, embeddedMemory, channelId);
         }
 
@@ -227,10 +212,18 @@ namespace Realization
         {
             var thread = channelId;
             var instructions = Instructor.GetInstruction(thread);
-            _weaver.ThreadInstructions(string.Empty, thread);
+            _weaver.ThreadInstructions(instructions, thread);
             _weaver.ThreadConversation(embedding.Memory.ToString(), thread, "user");
             var comparison = new MemoryComparison();
             var memories = GlobalLongMemory.Memories;
+            foreach (var memory in GlobalLongMemory.Global)
+            {
+                if (!memories.Any(mem => mem.Context == memory.Context))
+                {
+                    memories.Add(memory);
+                }
+
+            }
             var context = MemoryComparison.GetContextualMemory(memories);
             var relevantMemories = await comparison.OrderMemorySectionsByQuerySimilarity(embedding, context);
             var topMemories = relevantMemories.Take(5).Select(x => x);
@@ -291,8 +284,8 @@ namespace Realization
             var userSignal = new AuditorySignal() { Context = currentTopic, MemoryId = memId, Source = message.Author.Id, Topic = prediction.Name, Text = message.Content, Channel = message.Channel.Id };
             Auditory.ListenThread(userSignal);
             ulong userId = message.Author.Id;
-            GlobalLongMemory.AddMemory(embeddding, userId);
-            GlobalLongMemory.SaveMemories(userId);
+            GlobalLongMemory.AddMemory(embeddding, message.Channel.Id);
+            GlobalLongMemory.SaveMemories(message.Channel.Id);
         }
 
         /// <summary>
@@ -309,10 +302,56 @@ namespace Realization
             return _memory.Remember(message.Content, message.Author, MemoryType.LearnedSkill, message.Channel.Id);
         }
 
+        private bool HandleMemorySharing(SocketUserMessage message)
+        {
+            if (!message.Content.Contains("share memories from "))
+            {
+                return false;
+            }
+
+            ulong threadId = ExtractThreadIdFromMessage(message.Content);
+
+            if (threadId == 0)
+            {
+                SendMessageAsync(message.Channel, "Could not parse thread id. Look for a long number at the top of all threads.");
+                return true;
+            }
+
+            TransferMemoriesFromThreadToGlobal(threadId);
+            SendMessageAsync(message.Channel, $"Memories transferred from {threadId} to global memory.");
+            return true;
+        }
+
+        private ulong ExtractThreadIdFromMessage(string content)
+        {
+            const string searchString = "from ";
+            int startIndex = content.IndexOf(searchString) + searchString.Length;
+            string restOfString = content.Substring(startIndex);
+
+            return ulong.TryParse(restOfString, out ulong threadId) ? threadId : 0;
+        }
+
+        private void TransferMemoriesFromThreadToGlobal(ulong threadId)
+        {
+            GlobalLongMemory.LoadMemories(threadId);
+            var memories = GlobalLongMemory.Memories;
+            GlobalLongMemory.TransferToGlobalMemory(memories);
+            GlobalLongMemory.SaveGlobal();
+        }
+
+        private async Task SendMessageAsync(IMessageChannel channel, string message)
+        {
+            await channel.SendMessageAsync(message);
+        }
+
         public async Task<bool> BasicCommands(SocketUserMessage message)
         {
+            if (HandleMemorySharing(message))
+            {
+                return true;
+            }
             // Check current user settings
-            if(message.Content.Contains("check my settings")) 
+            if (message.Content.Contains("check my settings")) 
             {
                 var user = message.Author;
                 var temperature = _interactionHandler.GetUserTemperature(user.Id);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Memory.Converse;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,39 +21,25 @@ namespace Memory.Sharing
 
         public void SaveGlobalMemoriesToDisk()
         {
-            diskEmbedder.WriteMemories(GetGlobalMemories(), basePath);
+            diskEmbedder.WriteMemories(GetGlobalMemories());
         }
 
         public void SaveUserMemoriesToDisk(ulong userId)
         {
-            var userMemoriesPath = GetUserMemoriesPath(userId);
-            diskEmbedder.WriteMemories(GetUserMemories(userId), userMemoriesPath);
+            var memories = GetUserMemories(userId);
+            diskEmbedder.WriteMemories(memories, userId.ToString());
         }
 
         public void LoadUserMemoriesFromDisk(ulong userId)
         {
-            var userMemoriesPath = GetUserMemoriesPath(userId);
-            List<EmbeddedMemory> userMemories = diskEmbedder.ReadMemories(userMemoriesPath);
-
-            foreach (EmbeddedMemory memory in userMemories)
-            {
-                AddMemory(memory, userId);
-            }
+            List<EmbeddedMemory> userMemories = diskEmbedder.ReadMemories(userId.ToString());
+            LoadMemories(userMemories, userId);
         }
 
         private void LoadGlobalMemoriesFromDisk()
         {
-            List<EmbeddedMemory> globalMemories = diskEmbedder.ReadMemories(basePath);
-
-            foreach (EmbeddedMemory memory in globalMemories)
-            {
-                AddGlobalMemory(memory);
-            }
-        }
-
-        private string GetUserMemoriesPath(ulong userId)
-        {
-            return Path.Combine(basePath, $"user_{userId}");
+            List<EmbeddedMemory> globalMemories = diskEmbedder.ReadMemories();
+            LoadMemory(globalMemories);
         }
     }
 

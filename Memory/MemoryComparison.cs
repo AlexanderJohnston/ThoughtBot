@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace Memory
 {
@@ -31,46 +32,12 @@ namespace Memory
         }
         
         // Order sections by similarity and then return as a list of tuples.
-        public async Task<List<(double, (string, string))>> OrderMemorySectionsByQuerySimilarity(string query, Dictionary<(string, string), double[]> contexts)
+        public async Task<List<(double, (ulong, ulong))>> OrderMemorySectionsByQuerySimilarity(EmbeddedMemory query, Dictionary<(ulong, ulong), double[]> contexts)
         {
-            var queryEmbedding = await _engine.EmbedQuery(query);
+            var queryEmbedding = query;
             var vectorArray = queryEmbedding.Embedding.Data.Select(data => data.Embedding).First();
             var memorySimilarities = contexts.Select(x => (VectorSimilarity(vectorArray, x.Value), x.Key)).OrderByDescending(x => x.Item1).ToList();
             return memorySimilarities;
-        }
-        // Order sections by similarity and then return as a list of tuples.
-        public async Task<List<(double, (string, string))>> OrderMemorySectionsByQuerySimilarity(EmbeddedMemory query, Dictionary<(string, string), double[]> contexts)
-        {
-            var vectorArray = query.Embedding.Data.Select(data => data.Embedding).First();
-            var memorySimilarities = contexts.Select(x => (VectorSimilarity(vectorArray, x.Value), x.Key)).OrderByDescending(x => x.Item1).ToList();
-            return memorySimilarities;
-        }
-
-        public async Task<string> ConstructPrompt(string question, List<EmbeddedMemory> memories)
-        {
-            // Tokenize the separator and set maximum prompt length
-            int separatorLen = SEPARATOR.Tokenize().Count();
-
-            // Prepare the past embedded memories for similarity comparison.
-            Dictionary<(string, string), double[]> contextEmbeddings = GetContextualMemory(memories);
-
-            // Find the most relevant memories to the question based on the past embedded contexts.
-            var mostRelevantDocumentSections = await OrderMemorySectionsByQuerySimilarity(question, contextEmbeddings);
-
-            // Construct the prompt by concatenating the most relevant memories.
-            List<string> chosenSections, chosenSectionsIndexes;
-            WeaveMemories(memories, separatorLen, mostRelevantDocumentSections, out chosenSections, out chosenSectionsIndexes);
-
-            // Useful diagnostic information
-            Diagnostics(chosenSections, chosenSectionsIndexes);
-
-            // Header for the final prompt.
-            const string header = @"Answer the question as truthfully as possible using the provided context, and if the answer is not contained within the text below, say ""I don't know.""
-
-###Context 
-";
-            // Join all sections and prompt parts.
-            return header + string.Join("", chosenSections) + "\n\n Q: " + question + "\n A:";
         }
 
         private static void Diagnostics(List<string> chosenSections, List<string> chosenSectionsIndexes)
@@ -79,7 +46,7 @@ namespace Memory
             Log.Verbose(string.Join("\n", chosenSectionsIndexes));
         }
 
-        private List<string> WeaveMemories(List<EmbeddedMemory> memories, int separatorLen, List<(double, (string, string))> mostRelevantDocumentSections, out List<string> chosenSections, out List<string> chosenSectionsIndexes)
+        private List<string> WeaveMemories(List<EmbeddedMemory> memories, int separatorLen, List<(double, (ulong, ulong))> mostRelevantDocumentSections, out List<string> chosenSections, out List<string> chosenSectionsIndexes)
         {
             chosenSections = new List<string>();
             var chosenSectionsLen = 0;
@@ -115,10 +82,10 @@ namespace Memory
         /// </summary>
         /// <param name="memories">A list of previously embedded memories.</param>
         /// <returns></returns>
-        public static Dictionary<(string, string), double[]> GetContextualMemory(List<EmbeddedMemory> memories)
+        public static Dictionary<(ulong, ulong), double[]> GetContextualMemory(List<EmbeddedMemory> memories)
         {
             // Populate the dictionary with the EmbeddedMemory list using the Topic and Context for the tuple key, and use the first GptEmbedding.Data.Embedding array for the value.
-            var contextEmbeddings = new Dictionary<(string, string), double[]>();
+            var contextEmbeddings = new Dictionary<(ulong, ulong), double[]>();
             foreach (var memory in memories)
             {
                 contextEmbeddings.Add((memory.Topic, memory.Context), memory.Embedding.Data.Select(data => data.Embedding).First());

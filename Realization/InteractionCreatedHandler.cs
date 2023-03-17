@@ -155,12 +155,14 @@ namespace Realization
             }
             // Cast the channel.
             var textChannel = component.Channel as ITextChannel;
-            
+
             // Format the name Realization- with the current DateTime as a ulong.
-            string name = $"Realization-{DateTime.Now.ToBinary()}";
+            var time = DateTime.Now.ToBinary();
+            string name = $"Realization-{time}";
 
             // Create a new thread for the bot to respond to.
             var thread = await textChannel.CreateThreadAsync(name, autoArchiveDuration: ThreadArchiveDuration.OneDay);
+            Instructor.AddThread(thread.Id, time);
             Instructor.AddInstruction(thread.Id, option);
 
             // Add the user to the thread after checking if they can be cast to an IGuildUser.
@@ -185,7 +187,7 @@ namespace Realization
             }
             if (option == "opt-chat")
             {
-                await thread.SendMessageAsync("This thread is using Chat GPT 3.5 Turbo model release March 1st 2023.");
+                await thread.SendMessageAsync("This thread is using Chat GPT-4.");
                 return;
             }
             var defaultPrompt = _weaver.GetDefaultPrompt(thread.Id);

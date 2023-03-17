@@ -26,6 +26,14 @@ namespace Memory.Sharing
             userMemories[userId].Add(memory);
         }
 
+        public void LoadMemories(List<EmbeddedMemory> memory, ulong userId)
+        {
+
+            userMemories[userId] = memory;
+        }
+
+        public void LoadMemory(List<EmbeddedMemory> memory) => globalMemories = memory;
+
         public void AddGlobalMemory(EmbeddedMemory memory)
         {
             globalMemories.Add(memory);
@@ -37,19 +45,20 @@ namespace Memory.Sharing
             {
                 return userMemories[userId];
             }
+            else
+            {
+                return new List<EmbeddedMemory>();
 
-            return new List<EmbeddedMemory>();
+            }
         }
 
-        public List<EmbeddedMemory> GetGlobalMemories()
-        {
-            return globalMemories;
-        }
+        public List<EmbeddedMemory> GetGlobalMemories() => globalMemories;
+        
         public void TransferToGlobal(ulong userId, EmbeddedMemory memory)
         {
             if (userMemories.ContainsKey(userId) && userMemories[userId].Contains(memory))
             {
-                userMemories[userId].Remove(memory);
+                RemoveMemory(memory, userId);
                 globalMemories.Add(memory);
             }
         }
@@ -61,7 +70,7 @@ namespace Memory.Sharing
                 userMemories[userId].Remove(memory);
             }
         }
-
+        
         public void RemoveAllMemories()
         {
             userMemories.Clear();

@@ -11,16 +11,23 @@ namespace Memory
     // Stores EmbeddedMemories to disk and retrieves them.
     public class DiskEmbedder
     {
-        public string BasePath { get; set; }
+        public string Prefix { get; set; }
+        public string FileType { get; set; }
 
-        public DiskEmbedder(string basePath)
+        public DiskEmbedder(string prefix = "longTermMemory", string fileType = ".json")
         {
-            BasePath = basePath;
+            Prefix = prefix;
+            FileType = fileType;
         }
 
-        public void WriteMemories(List<EmbeddedMemory> memories, string path)
+        private string BuildPath(string extraPath = "")
         {
-            string fullPath = System.IO.Path.Combine(BasePath, path);
+            return $"{Prefix}{(string.IsNullOrEmpty(extraPath) ? "" : $"-{extraPath}")}{FileType}";
+        }
+
+        public void WriteMemories(List<EmbeddedMemory> memories, string extraPath = "")
+        {
+            string fullPath = BuildPath(extraPath);
 
             if (File.Exists(fullPath))
             {
@@ -36,9 +43,9 @@ namespace Memory
             }
         }
 
-        public List<EmbeddedMemory> ReadMemories(string path)
+        public List<EmbeddedMemory> ReadMemories(string extraPath = "")
         {
-            string fullPath = System.IO.Path.Combine(BasePath, path);
+            string fullPath = BuildPath(extraPath);
 
             try
             {

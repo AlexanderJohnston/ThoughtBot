@@ -42,13 +42,13 @@ namespace Realization
             }
         }
 
-        public async Task<EmbeddedMemory> EmbedMemory(SocketMessage messageParam, string topic, string context)
+        public async Task<EmbeddedMemory> EmbedMemory(SocketMessage messageParam)
         {
             var embedEngine = new EmbeddingEngine();
             var message = messageParam.Content;
             var user = messageParam.Author.Username;
             var userId = messageParam.Author.Id;
-            var embed = await embedEngine.GetEmbedding(message, user, userId, topic, context);
+            var embed = await embedEngine.GetEmbedding(message, user, userId, messageParam.Channel.Id, messageParam.Id);
             var model = JsonConvert.SerializeObject(embed.Embedding.Model);
             var usage = JsonConvert.SerializeObject(embed.Embedding.Usage);
             var obj = JsonConvert.SerializeObject(embed.Embedding.Object);
@@ -123,7 +123,7 @@ data: {3}";
                 temperature = UserTemperature[message.Author.Id];
             }
             var responseEngine = new ResponsePredictionEngine(_openAIToken);
-            var response = await responseEngine.PredictResponse(chatHistory, "gpt-3.5-turbo-0301", temperature);
+            var response = await responseEngine.PredictResponse(chatHistory, "gpt-4", temperature);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
             //await ReadAzure(clue, message);
