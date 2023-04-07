@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "GrpcWeaviationClient";
+
+package message;
+
+// The greeting service definition.
+service Messager {
+  // Sends a greeting
+  rpc SendMessage (TextMessage) returns (MessageStatus);
+}
+
+// The request message containing the user's name.
+message TextMessage {
+  string text = 1;
+  uint64 thread_id = 2;
+  uint64 user_id = 3;
+  uint64 context_id = 4;
+}
+
+// The response message containing the greetings. Default to 0 for failed.
+message MessageStatus {
+  uint32 success = 1;
+}

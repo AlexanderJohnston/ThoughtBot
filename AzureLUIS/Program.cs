@@ -13,7 +13,7 @@ using Realization.Services;
 
 CognitiveServices CallToCLU()
 {
-    var key = File.ReadAllText(Environment.CurrentDirectory + "\\key");
+    var key = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "key"));
     Uri endpoint = new Uri("https://realize.cognitiveservices.azure.com");
     AzureKeyCredential credential = new AzureKeyCredential(key);
 

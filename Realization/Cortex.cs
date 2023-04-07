@@ -131,6 +131,23 @@ data: {3}";
             return response;
         }
 
+        public async Task<string> PredictResponse(IMessage message, List<GptChatMessage> chatHistory, string model)
+        {
+            float temperature = 0.7f;
+            // Check for a user temp
+            if (UserTemperature.ContainsKey(message.Author.Id))
+            {
+                temperature = UserTemperature[message.Author.Id];
+            }
+            var responseEngine = new ResponsePredictionEngine(_openAIToken);
+            var response = await responseEngine.PredictResponse(chatHistory, model, temperature);
+            await message.Channel.SendMessageAsync(response);
+            //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
+            //await ReadAzure(clue, message);
+            //await ReadEntities(message);
+            return response;
+        }
+
         private async Task ReadAzure(Response response, IMessage message)
         {
             using JsonDocument result = JsonDocument.Parse(response.ContentStream);

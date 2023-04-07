@@ -53,8 +53,8 @@ namespace Realization
                 .WithCustomId("conversation-type-menu")
                 .WithMinValues(1)
                 .WithMaxValues(1)
-                .AddOption("Chat", "opt-chat", "Talk with Realai using the latest Chat GPT!")
-                .AddOption("Davinci", "opt-davinci", "Talk with Realai using GPT-3 Davinci!")
+                .AddOption("Chat-GPT-4", "opt-chat", "Talk with Realai using the latest Chat GPT!")
+                .AddOption("GPT-4-32k", "opt-davinci", "Talk with Realai using GPT-32k!")
                 .AddOption("Characterize", "opt-character", "Personify Realai and have a conversation with them!")
                 .AddOption("Teach", "opt-teach", "Teach Realai something new!")
                 .AddOption("Recall", "opt-memory", "Recall memories with Realai!");

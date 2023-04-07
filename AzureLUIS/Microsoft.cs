@@ -13,7 +13,8 @@ namespace AzureLUIS
 
         private CognitiveServices CallCLU()
         {
-            var key = File.ReadAllText(Environment.CurrentDirectory + "\\key");
+            var path = Path.Combine(Environment.CurrentDirectory, "key");
+            var key = File.ReadAllText(path);
             Uri endpoint = new Uri("https://realize.cognitiveservices.azure.com/");
             AzureKeyCredential credential = new AzureKeyCredential(key);
 

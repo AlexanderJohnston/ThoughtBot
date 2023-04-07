@@ -15,7 +15,7 @@ namespace Memory
     public class EmbeddingEngine : CognitiveHttpClient
     {
         private string _embedUri = @"https://api.openai.com/v1/embeddings";
-        private string _key = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI");
+        private string _key = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "key.openAI"));
 
 
         public async Task<QueryEmbedding> EmbedQuery(string message)

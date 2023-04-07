@@ -21,6 +21,7 @@ using Discord.Interactions;
 using Realization.Perception;
 using Realization.Global;
 using Memory.Chat;
+using Weaviation;
 
 namespace Realization
 {
@@ -37,11 +38,12 @@ namespace Realization
         SocketUser _self; // The bot's user object.
         ThreadWeaver _weaver = new ThreadWeaver(); // Weaves together every prompt for GPT to respond to dynamically.
         InteractionCreatedHandler _interactionHandler; // Handles Discord interaction events.
+        PyClient _weaviateClient; // Handles Weaviate API calls.
         bool _sleeping = true; // If true, the bot will not respond to commands in channels.
         bool _quiet = false; // If true, the bot will not respond to threads.
         bool _tokenize = false; // Returns next message's tokens for testing purposes.
         bool _showMemory = false; // Shows bot's memory for testing purposes.
-        string _openAIKey = File.ReadAllText(Environment.CurrentDirectory + "\\key.openAI"); // Key stored separetly on disk to avoid accidentally checking it into source.
+        string _openAIKey = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "key.openAI")); // Key stored separetly on disk to avoid accidentally checking it into source.
         string _name = "Realization"; // Bot's name
         string AllowedChannel = "thoughtbot"; // Default channel the bot is allowed to operate in.
         readonly DiscordSocketClient _client;
@@ -54,7 +56,8 @@ namespace Realization
             _commands = commands;
             _client = client;
             Cognition = cognition;
-            
+            _weaviateClient = new("http://localhost:5000");
+
             // Required for CLU, this is basically just a shim for now.
             var plasticIntent = new PlasticIntentions();
             Cortex = new Cortex(new List<Intention> { new None() }, Cognition, _openAIKey);
@@ -199,6 +202,10 @@ namespace Realization
             Guid memId = ShortMemory(message);
             // Save the message to long term memory.
             var embeddedMemory = await Cortex.EmbedMemory(messageParam);
+            // Announce to channel that you are attempting to call weaviate client.
+            await messageParam.Channel.SendMessageAsync("Calling Weaviate...");
+            var weaviationMessage = new EmbeddedMessage(embeddedMemory.Memory.Message, channelId, messageParam.Author.Id, messageParam.Id);
+            await _weaviateClient.SendMessage(weaviationMessage);
             await TryRespondWithLoom(message, memId, embeddedMemory, channelId);
         }
 
@@ -236,9 +243,12 @@ namespace Realization
             }
             else
             {
-                var promptForGpt = _weaver.GeneratePromptFor(thread);
+                var chatForGpt = _weaver.GenerateChatFor(thread);
                 await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
-                await Respond(message, promptForGpt);
+                await Respond(message, chatForGpt, "gpt-4-32k");
+                //var promptForGpt = _weaver.GeneratePromptFor(thread);
+                //await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
+                //await Respond(message, promptForGpt);
             }
         }
 
@@ -267,6 +277,19 @@ namespace Realization
             if (_self != null)
             {
                 var response = await Cortex.PredictResponse(message, chatHistory);
+                _weaver.ThreadConversation(response, message.Channel.Id, "assistant");
+                var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
+                await RememberSelf(botMemId, response, message.Channel.Id);
+            }
+        }
+
+        // This handles Chat-GPT responses using the Loom weaving system.
+        private async Task Respond(SocketUserMessage? message, List<GptChatMessage> chatHistory, string model)
+        {
+            // Don't bother responding if a self isn't defined for sake of memory.
+            if (_self != null)
+            {
+                var response = await Cortex.PredictResponse(message, chatHistory, model);
                 _weaver.ThreadConversation(response, message.Channel.Id, "assistant");
                 var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
                 await RememberSelf(botMemId, response, message.Channel.Id);

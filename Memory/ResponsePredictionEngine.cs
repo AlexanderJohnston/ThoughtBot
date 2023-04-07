@@ -91,7 +91,7 @@ namespace Memory
             return await PredictResponse(prompt, "text-ada-001");
         }
 
-        public async Task<string> PredictResponse(string message, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 5120)
+        public async Task<string> PredictResponse(string message, string model = "text-davinci-003", float temperature = 0.8f, int tokens = 8096)
         {
             var uriBuilder = BuildRequestToOpenAi();
             var request = OpenAIRequest(uriBuilder.Uri, temperature, tokens, message, model);

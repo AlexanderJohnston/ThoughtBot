@@ -43,6 +43,7 @@
     <ProjectReference Include="..\AzureLUIS\AzureLUIS.csproj" />
     <ProjectReference Include="..\Memory\Memory.csproj" />
     <ProjectReference Include="..\Prompter\Prompter.csproj" />
+    <ProjectReference Include="..\Weaviation\Weaviation.csproj" />
   </ItemGroup>
 
 
