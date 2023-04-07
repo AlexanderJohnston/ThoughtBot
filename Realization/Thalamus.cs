@@ -205,7 +205,8 @@ namespace Realization
             // Announce to channel that you are attempting to call weaviate client.
             await messageParam.Channel.SendMessageAsync("Calling Weaviate...");
             var weaviationMessage = new EmbeddedMessage(embeddedMemory.Memory.Message, channelId, messageParam.Author.Id, messageParam.Id);
-            await _weaviateClient.SendMessage(weaviationMessage);
+            var weaviation = await _weaviateClient.SendMessage(weaviationMessage);
+            await messageParam.Channel.SendMessageAsync(weaviation == 1 ? "Weaviate successfully received your message." : "Weaviate responded with a failure.");
             await TryRespondWithLoom(message, memId, embeddedMemory, channelId);
         }
 
