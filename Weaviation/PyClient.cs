@@ -12,7 +12,7 @@ namespace Weaviation
             _host = host;
         }
         //Rewrite SendMessage to use the Messager client
-        public async Task<int> SendMessage(EmbeddedMessage message)
+        public async Task<uint> SendMessage(EmbeddedMessage message)
         {
             using var channel = GrpcChannel.ForAddress(_host);
             var client = new Messager.MessagerClient(channel);
@@ -22,7 +22,7 @@ namespace Weaviation
                     ThreadId = message.ThreadId, 
                     UserId = message.UserId, 
                     ContextId = message.ContextId });
-            return reply;
+            return reply.Success;
         }
     }
   
