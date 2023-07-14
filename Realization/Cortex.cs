@@ -99,14 +99,14 @@ data: {3}";
 
         public async Task<string> PredictResponse(IMessage message, string content)
         {
-            float temperature = 0.7f;
+            float temperature = 0.6f;
             // Check for a user temp
             if (UserTemperature.ContainsKey(message.Author.Id))
             {
                 temperature = UserTemperature[message.Author.Id];
             }
             var responseEngine = new ResponsePredictionEngine(_openAIToken);
-            var response = await responseEngine.PredictResponse(content, "text-davinci-003", temperature);
+            var response = await responseEngine.PredictResponse(content, "gpt-4-0613", temperature, 350);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
             //await ReadAzure(clue, message);
@@ -116,14 +116,14 @@ data: {3}";
 
         public async Task<string> PredictResponse(IMessage message, List<GptChatMessage> chatHistory)
         {
-            float temperature = 0.7f;
+            float temperature = 0.6f;
             // Check for a user temp
             if (UserTemperature.ContainsKey(message.Author.Id))
             {
                 temperature = UserTemperature[message.Author.Id];
             }
             var responseEngine = new ResponsePredictionEngine(_openAIToken);
-            var response = await responseEngine.PredictResponse(chatHistory, "gpt-4", temperature);
+            var response = await responseEngine.PredictResponse(chatHistory, "gpt-4-0613", temperature, 350);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
             //await ReadAzure(clue, message);
@@ -133,14 +133,14 @@ data: {3}";
 
         public async Task<string> PredictResponse(IMessage message, List<GptChatMessage> chatHistory, string model)
         {
-            float temperature = 0.7f;
+            float temperature = 0.6f;
             // Check for a user temp
             if (UserTemperature.ContainsKey(message.Author.Id))
             {
                 temperature = UserTemperature[message.Author.Id];
             }
             var responseEngine = new ResponsePredictionEngine(_openAIToken);
-            var response = await responseEngine.PredictResponse(chatHistory, model, temperature);
+            var response = await responseEngine.PredictResponse(chatHistory, model, temperature, 350);
             await message.Channel.SendMessageAsync(response);
             //var clue = _cognition.Understanding.Services.Analysis.AnalyzeConversation(RequestContent.Create(Hydrate(message.Content)));
             //await ReadAzure(clue, message);

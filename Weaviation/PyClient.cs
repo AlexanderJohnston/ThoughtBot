@@ -25,5 +25,4 @@ namespace Weaviation
             return reply.Success;
         }
     }
-  
 }

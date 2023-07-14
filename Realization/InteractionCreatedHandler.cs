@@ -158,7 +158,7 @@ namespace Realization
 
             // Format the name Realization- with the current DateTime as a ulong.
             var time = DateTime.Now.ToBinary();
-            string name = $"Realization-{time}";
+            string name = $"Dream-{time}";
 
             // Create a new thread for the bot to respond to.
             var thread = await textChannel.CreateThreadAsync(name, autoArchiveDuration: ThreadArchiveDuration.OneDay);

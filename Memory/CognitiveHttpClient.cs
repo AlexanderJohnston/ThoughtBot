@@ -34,7 +34,7 @@ namespace Memory
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
-            _client.Timeout = TimeSpan.FromSeconds(30);
+            _client.Timeout = TimeSpan.FromSeconds(60);
         }
 
         public UriBuilder CognitiveServicesUri(string message)

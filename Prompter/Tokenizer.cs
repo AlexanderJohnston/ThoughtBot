@@ -13,11 +13,11 @@ namespace Prompter
     public class Tokenizer : IEnforceTokenizer, IDisposable
     {
         // The maximum amount of tokens allowed for each conversation.
-        private const int MAX_CONVERSATION_TOKENS = 2100;
+        private const int MAX_CONVERSATION_TOKENS = 1700;
         // The maximum amount of tokens allowed for each embedding.
-        private const int MAX_EMBEDDING_TOKENS = 1500;
+        private const int MAX_EMBEDDING_TOKENS = 1200;
         // The maximum amount of tokens allowed for each instruction.
-        private const int MAX_INSTRUCTION_TOKENS = 280;
+        private const int MAX_INSTRUCTION_TOKENS = 1000;
         // The maximum amount of tokens allowed for each prompt.
         private const int MAX_TOTAL_TOKENS = 4000;
         // The maximum amount of tokens allowed for each prompt.

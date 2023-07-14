@@ -45,7 +45,7 @@ namespace Realization
         bool _showMemory = false; // Shows bot's memory for testing purposes.
         string _openAIKey = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "key.openAI")); // Key stored separetly on disk to avoid accidentally checking it into source.
         string _name = "Realization"; // Bot's name
-        string AllowedChannel = "thoughtbot"; // Default channel the bot is allowed to operate in.
+        string AllowedChannel = "bot-test"; // Default channel the bot is allowed to operate in.
         readonly DiscordSocketClient _client;
         readonly CommandService _commands; // Unused
         IServiceProvider _services;        // Unused
@@ -203,10 +203,10 @@ namespace Realization
             // Save the message to long term memory.
             var embeddedMemory = await Cortex.EmbedMemory(messageParam);
             // Announce to channel that you are attempting to call weaviate client.
-            await messageParam.Channel.SendMessageAsync("Calling Weaviate...");
-            var weaviationMessage = new EmbeddedMessage(embeddedMemory.Memory.Message, channelId, messageParam.Author.Id, messageParam.Id);
-            var weaviation = await _weaviateClient.SendMessage(weaviationMessage);
-            await messageParam.Channel.SendMessageAsync(weaviation == 1 ? "Weaviate successfully received your message." : "Weaviate responded with a failure.");
+            //await messageParam.Channel.SendMessageAsync("Calling Weaviate...");
+            //var weaviationMessage = new EmbeddedMessage(embeddedMemory.Memory.Message, channelId, messageParam.Author.Id, messageParam.Id);
+            //var weaviation = await _weaviateClient.SendMessage(weaviationMessage);
+            //await messageParam.Channel.SendMessageAsync(weaviation == 1 ? "Weaviate successfully received your message." : "Weaviate responded with a failure.");
             await TryRespondWithLoom(message, memId, embeddedMemory, channelId);
         }
 
@@ -246,7 +246,7 @@ namespace Realization
             {
                 var chatForGpt = _weaver.GenerateChatFor(thread);
                 await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
-                await Respond(message, chatForGpt, "gpt-4-32k");
+                await Respond(message, chatForGpt, "gpt-4-0613");
                 //var promptForGpt = _weaver.GeneratePromptFor(thread);
                 //await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
                 //await Respond(message, promptForGpt);
