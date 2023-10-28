@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureLUIS", "AzureLUIS\Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prompter", "Prompter\Prompter.csproj", "{E28BF2CD-8E6B-4BCC-AD04-E024DE2F6EEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Weaviation", "Weaviation\Weaviation.csproj", "{09361C04-EAE0-46B9-BEBF-CC4C62A26257}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Weaviation", "Weaviation\Weaviation.csproj", "{09361C04-EAE0-46B9-BEBF-CC4C62A26257}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dialogue", "Dialogue\Dialogue.csproj", "{2E47C7D4-0DFB-4799-AD59-6EC0AB33E1EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "REBL", "REBL\REBL.csproj", "{ABF8F4CA-9885-4DFD-9C2D-5A6978984679}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{09361C04-EAE0-46B9-BEBF-CC4C62A26257}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09361C04-EAE0-46B9-BEBF-CC4C62A26257}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09361C04-EAE0-46B9-BEBF-CC4C62A26257}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E47C7D4-0DFB-4799-AD59-6EC0AB33E1EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E47C7D4-0DFB-4799-AD59-6EC0AB33E1EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E47C7D4-0DFB-4799-AD59-6EC0AB33E1EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E47C7D4-0DFB-4799-AD59-6EC0AB33E1EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABF8F4CA-9885-4DFD-9C2D-5A6978984679}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABF8F4CA-9885-4DFD-9C2D-5A6978984679}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABF8F4CA-9885-4DFD-9C2D-5A6978984679}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABF8F4CA-9885-4DFD-9C2D-5A6978984679}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

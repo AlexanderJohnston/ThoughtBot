@@ -244,7 +244,7 @@ namespace Realization
             }
             else
             {
-                var chatForGpt = _weaver.GenerateChatFor(thread);
+                var chatForGpt = _weaver.GenerateChatFor(thread); // Generate Prompt originally
                 await RememberOther(message, memId, "Memory", new None("Thread"), embedding);
                 await Respond(message, chatForGpt, "gpt-4-0613");
                 //var promptForGpt = _weaver.GeneratePromptFor(thread);
@@ -259,12 +259,12 @@ namespace Realization
         }
 
         // This handles GPT-3 responses with Davinci using the Loom weaving system.
-        private async Task Respond(SocketUserMessage? message, string wovenRequest)
+        private async Task Respond(SocketUserMessage? message, string wovenRequest, string model)
         {
             // Don't bother responding if a self isn't defined for sake of memory.
             if (_self != null)
             {
-                var response = await Cortex.PredictResponse(message, wovenRequest);
+                var response = await Cortex.PredictResponse(message, wovenRequest); // TODO pass model in
                 _weaver.ThreadConversation(response, message.Channel.Id, "assistant");
                 var botMemId = _memory.Remember(response, _self, MemoryType.FormulatedIntent, message.Channel.Id);
                 await RememberSelf(botMemId, response, message.Channel.Id);

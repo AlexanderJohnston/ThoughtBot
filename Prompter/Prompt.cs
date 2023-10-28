@@ -86,7 +86,12 @@ namespace Prompter
         public List<GptChatMessage> GenerateChat()
         {
             List<GptChatMessage> messages = new();
-            var instructions = variables.ContainsKey("instructions") ? variables["instructions"] : null;
+            //var prompt = GeneratePrompt();
+            //messages.Add(new GptChatMessage("system", prompt)); // TODO remove this debug logic
+            //return messages;
+            var prompt = Format;
+            var system = BuildSystemInstruction(ref prompt);
+            var instructions = variables.ContainsKey("instruction") ? variables["instruction"] : null;
             if (instructions != null)
             {
                 messages.Add(new GptChatMessage("system", instructions));
@@ -138,7 +143,12 @@ namespace Prompter
                 sb.Append("Conversation:\n");
                 sb.Append("\n");
             }
-            var instructions = variables.ContainsKey("instructions") ? variables["instructions"] : null;
+            return BuildSystemInstruction(ref prompt);
+        }
+
+        private string BuildSystemInstruction(ref string prompt)
+        {
+            var instructions = variables.ContainsKey("instruction") ? variables["instruction"] : null;
             if (instructions != null)
             {
                 var instSb = new StringBuilder();

@@ -34,7 +34,7 @@ It is also fine to simply say 'Got it.' or 'I follow so far.'
 
 ### Goals
 Every now and then whenever infrastructure is involved in the dream, you should make the faintest hints towards supernatural patterns emerging with that infrastructure.
-This can be in any form form logistical, mechanical, eletrical, or even social. The point is that over the course of many separate conversations, players
+This can be in any form form logistical, mechanical, electrical, or even social. The point is that over the course of many separate conversations, players
 will get an idea that something is going on, and realize the God Machine is at work behind the scenes.
 
 
@@ -60,7 +60,7 @@ will get an idea that something is going on, and realize the God Machine is at w
 
 ### Goals
 Every now and then whenever infrastructure is involved in the dream, you should make the faintest hints towards supernatural patterns emerging with that infrastructure.
-This can be in any form form logistical, mechanical, eletrical, or even social. The point is that over the course of many separate conversations, players
+This can be in any form form logistical, mechanical, electrical, or even social. The point is that over the course of many separate conversations, players
 will get an idea that something is going on, and realize the God Machine is at work behind the scenes.
 
 ### User's Backstory
